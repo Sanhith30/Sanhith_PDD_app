@@ -83,21 +83,7 @@ From start to finish, we have implemented a complete, clinical-grade pipeline:
    - Clinicians can export these detailed findings as PDF reports for physical patient records or referrals.
 
 #### 📱 App Screen Flow Diagram
-```mermaid
-graph TD
-    A[Splash Screen] --> B[Onboarding Tour]
-    A --> C[Login / Sign Up]
-    B --> C
-    C --> D[Main Dashboard]
-    D --> E[New Patient Case]
-    D --> F[Patient History]
-    D --> G[Analytics & Charts]
-    D --> H[Settings & Profile]
-    E --> I[Image Upload]
-    I --> J((AI Result & Report))
-    F --> K[Case Detail View]
-    J --> D
-```
+![App Screen Flow Diagram](screen_diagram.png)
 
 ---
 
@@ -106,15 +92,7 @@ graph TD
 ### INTRODUCTION
 
 #### Concept Overview Diagram
-```mermaid
-graph LR
-    A[Patient with Oral Lesion] --> B(Clinical Examination)
-    B --> C{Saveetha Oral Sentry App}
-    C -->|Clinical Data| D[Tabular ML Model]
-    C -->|Image Upload| E[Visual DL Model]
-    D --> F((Hybrid AI Risk Assessment))
-    E --> F
-```
+![Concept Overview Diagram](introduction_diagram.png)
 
 1. **AIM:** To develop an accurate, offline-capable clinical decision support system utilizing a hybrid AI approach to detect and assess the risk of oral ulcers and potentially malignant disorders.
 2. **Importance:** Early detection of oral potentially malignant disorders significantly improves patient prognosis and survival rates, while reducing unnecessary biopsies.
@@ -127,32 +105,7 @@ graph LR
 ### MATERIALS AND METHODS
 1. **Architecture Diagram of processing:**
 
-```mermaid
-graph TD
-    subgraph Frontend [Mobile Client - Flutter]
-        UI[Surgical Luxury UI]
-        LocalDB[(SQLite Local Cache)]
-    end
-    
-    subgraph Backend [FastAPI Server]
-        API[REST Endpoints]
-        Auth[PyJWT Auth]
-        DB[(PostgreSQL / SQLite)]
-    end
-    
-    subgraph AIEngine [Hybrid AI Engine]
-        ML[Scikit-Learn ML Model]
-        DL[TensorFlow MobileNetV2]
-        Heuristics[OpenCV Heuristics]
-    end
-    
-    UI <-->|HTTP/REST| API
-    UI <-->|Offline Storage| LocalDB
-    API <--> Auth
-    API <--> DB
-    API --> AIEngine
-    AIEngine -->|Risk Score| API
-```
+![System Architecture Diagram](system_diagram.png)
 
 2. **Explanation to solve the research Gap:** 
    Existing solutions often rely solely on "black-box" visual models, ignoring crucial patient history. Our system bridges this gap by combining visual deep learning with clinical data and rule-based heuristics to provide a robust, explainable hybrid score.
