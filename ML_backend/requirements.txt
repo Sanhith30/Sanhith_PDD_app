@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+pandas
+scikit-learn==1.6.1
+joblib
+sqlalchemy
+psycopg2-binary
+PyJWT
+passlib[bcrypt]
+tensorflow-cpu
+pillow

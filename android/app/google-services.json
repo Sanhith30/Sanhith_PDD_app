@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1052317779412",
+    "project_id": "saveetha-oral-ulcer-ai",
+    "storage_bucket": "saveetha-oral-ulcer-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1052317779412:android:8456f9e77234bee25e4241",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1052317779412-f5dmrht19puofoncl5t2ehfoo8vihooc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9qKlG7-720uXCvQJXHFCIz4OAZ65fTKs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1052317779412-f5dmrht19puofoncl5t2ehfoo8vihooc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
