@@ -1,9 +1,27 @@
 # Oral Ulcer AI (Saveetha Oral Sentry)
 
+![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-%23FF6F00.svg?style=for-the-badge&logo=TensorFlow&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/postgresql-4169e1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Release](https://img.shields.io/badge/Release-v1.0.0-success?style=for-the-badge)
+
 ## 📖 About the Project
 **Oral Ulcer AI (Saveetha Oral Sentry)** is a clinical-grade mobile application designed to assist dental professionals and clinicians in the early detection, risk assessment, and management of oral ulcers and potentially malignant oral disorders. 
 
 The application serves as a clinical decision-support system that provides comprehensive risk analysis by combining clinical heuristic flags with advanced machine learning (for tabular clinical features) and deep learning (for visual image features). By identifying high-risk markers early, the app aids in expediting necessary biopsies and improving patient outcomes.
+
+---
+
+## 📸 App Interface & Demo
+
+> **🎥 Watch the Full Video Demo Here:** [Insert YouTube/Drive Link Here]
+
+*(Drag and drop your app screenshots below to showcase the beautiful Surgical Luxury UI)*
+
+| Splash Screen | Dashboard | AI Result & Risk Analysis |
+|:---:|:---:|:---:|
+| <img src="https://via.placeholder.com/250x500.png?text=Splash+Screen" width="250"> | <img src="https://via.placeholder.com/250x500.png?text=Dashboard" width="250"> | <img src="https://via.placeholder.com/250x500.png?text=AI+Result" width="250"> |
 
 ---
 
@@ -127,3 +145,16 @@ From start to finish, we have implemented a complete, clinical-grade pipeline:
 - Relevant literature on Oral Squamous Cell Carcinoma and Potentially Malignant Disorders.
 - TensorFlow/Keras and Scikit-Learn documentation for machine learning frameworks.
 - Flutter documentation for cross-platform mobile development.
+
+---
+
+## 🔮 Future Roadmap
+- [ ] **Cloud Sync:** Implement real-time cloud synchronization for multi-device hospital environments.
+- [ ] **Expanded Dataset:** Re-train the MobileNetV2 architecture with an expanded, ethnically diverse dataset of 10,000+ clinical images.
+- [ ] **iOS Support:** Compile and release the application for iOS devices using Flutter's native cross-platform compilation.
+
+---
+
+## 🤝 Contributors
+* **Sanhith Reddy** - Lead Developer & AI Researcher
+* *(Add your professors or college name here)*
