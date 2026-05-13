@@ -156,5 +156,4 @@ From start to finish, we have implemented a complete, clinical-grade pipeline:
 ---
 
 ## 🤝 Contributors
-* **Sanhith Reddy** - Lead Developer & AI Researcher
-* *(Add your professors or college name here)*
+* **Thikkavarapu Sanhith ** - Lead Developer & AI Researcher
