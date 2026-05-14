@@ -17,7 +17,6 @@ The application serves as a clinical decision-support system that provides compr
 
 > **🎥 Watch the Full Video Demo Here:** [YouTube Demo Link](https://youtube.com/shorts/pcS3mV_aGtM)
 
-*(Drag and drop your app screenshots below to showcase the beautiful Surgical Luxury UI)*
 
 | Splash Screen | Dashboard | AI Result & Risk Analysis |
 |:---:|:---:|:---:|
