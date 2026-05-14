@@ -15,13 +15,13 @@ The application serves as a clinical decision-support system that provides compr
 
 ## 📸 App Interface & Demo
 
-> **🎥 Watch the Full Video Demo Here:** [Insert YouTube/Drive Link Here]
+> **🎥 Watch the Full Video Demo Here:** [YouTube Demo Link](https://youtube.com/shorts/pcS3mV_aGtM)
 
 *(Drag and drop your app screenshots below to showcase the beautiful Surgical Luxury UI)*
 
 | Splash Screen | Dashboard | AI Result & Risk Analysis |
 |:---:|:---:|:---:|
-| <img src="https://via.placeholder.com/250x500.png?text=Splash+Screen" width="250"> | <img src="https://via.placeholder.com/250x500.png?text=Dashboard" width="250"> | <img src="https://via.placeholder.com/250x500.png?text=AI+Result" width="250"> |
+| <img src="Screenshot_20260514-151801.png" width="250"> | <img src="Screenshot_20260514-151709.png" width="250"> | <img src="Screenshot_20260514-151745.png" width="250"> |
 
 ---
 
