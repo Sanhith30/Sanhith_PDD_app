@@ -87,7 +87,8 @@ for filename, mermaid_code in diagrams.items():
     url = generate_kroki_url(mermaid_code)
     try:
         req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req) as response, open(filename, 'wb') as out_file:
+        output_path = os.path.join("docs", "images", filename)
+        with urllib.request.urlopen(req) as response, open(output_path, 'wb') as out_file:
             out_file.write(response.read())
         print(f"Successfully saved {filename}")
     except Exception as e:

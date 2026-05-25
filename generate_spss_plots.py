@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -105,6 +106,7 @@ for col, info in metrics.items():
     
     # Save the output image with high quality
     plt.tight_layout(rect=[0, 0.08, 1, 1])
-    plt.savefig(info['filename'], dpi=300, bbox_inches='tight')
+    output_path = os.path.join("docs", "images", info['filename'])
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
-    print(f"Generated SPSS bar graph for {col} -> {info['filename']}")
+    print(f"Generated SPSS bar graph for {col} -> {output_path}")

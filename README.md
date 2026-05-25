@@ -20,7 +20,7 @@ The application serves as a clinical decision-support system that provides compr
 
 | Splash Screen | Dashboard | AI Result & Risk Analysis |
 |:---:|:---:|:---:|
-| <img src="Screenshot_20260514-151801.png" width="250"> | <img src="Screenshot_20260514-151709.png" width="250"> | <img src="Screenshot_20260514-151745.png" width="250"> |
+| <img src="docs/images/Screenshot_20260514-151801.png" width="250"> | <img src="docs/images/Screenshot_20260514-151709.png" width="250"> | <img src="docs/images/Screenshot_20260514-151745.png" width="250"> |
 
 ---
 
@@ -42,7 +42,7 @@ The risk assessment is not a simple black box; it uses a transparent, hybrid app
 
 ### 4. Hybrid AI Inference Pipeline
 
-![Hybrid AI Inference Pipeline](hybrid_ai_flowchart.png)
+![Hybrid AI Inference Pipeline](docs/images/hybrid_ai_flowchart.png)
 
 When a clinician requests a risk assessment, the FastAPI server runs the patient through a multi-stage hybrid inference pipeline:
 1. **Inputs Uploaded**: The Flutter app sends the lesion image file and patient history/examination details to the `/predict_full` API endpoint.
@@ -112,7 +112,7 @@ From start to finish, we have implemented a complete, clinical-grade pipeline:
    - Clinicians can export these detailed findings as PDF reports for physical patient records or referrals.
 
 #### 📱 App Screen Flow Diagram
-![App Screen Flow Diagram](screen_diagram.png)
+![App Screen Flow Diagram](docs/images/screen_diagram.png)
 
 ---
 
@@ -121,7 +121,7 @@ From start to finish, we have implemented a complete, clinical-grade pipeline:
 ### INTRODUCTION
 
 #### Concept Overview Diagram
-![Concept Overview Diagram](introduction_diagram.png)
+![Concept Overview Diagram](docs/images/introduction_diagram.png)
 
 1. **AIM:** To develop an accurate, offline-capable clinical decision support system utilizing a hybrid AI approach to detect and assess the risk of oral ulcers and potentially malignant disorders.
 2. **Importance:** Early detection of oral potentially malignant disorders significantly improves patient prognosis and survival rates, while reducing unnecessary biopsies.
@@ -134,9 +134,9 @@ From start to finish, we have implemented a complete, clinical-grade pipeline:
 ### MATERIALS AND METHODS
 1. **Architecture Diagram of processing:**
 
-![Materials and Methods Flowchart](materials_methods_flowchart_horizontal.png)
+![Materials and Methods Flowchart](docs/images/materials_methods_flowchart_horizontal.png)
 
-![System Architecture Diagram](system_diagram.png)
+![System Architecture Diagram](docs/images/system_diagram.png)
 
 2. **Explanation to solve the research Gap:** 
    Existing solutions often rely solely on "black-box" visual models, ignoring crucial patient history. Our system bridges this gap by combining visual deep learning with clinical data and rule-based heuristics to provide a robust, explainable hybrid score.
@@ -161,17 +161,17 @@ As per project requirements, a comparative analysis was performed between the An
 *Note: Android version showed significantly higher efficiency and user satisfaction due to native hardware acceleration and optimized mobile UI.*
 
 **SPSS Statistical Analysis Output:**
-![SPSS Analysis Output](spss_output.png)
+![SPSS Analysis Output](docs/images/spss_output.png)
 
 **SPSS Mean Performance Comparison (95% CI):**
 | Mean Speed (ms) | Mean Usability (1-5) |
 | :---: | :---: |
-| ![Mean Speed by Platform](spss_speed_bar.png) | ![Mean Usability by Platform](spss_usability_bar.png) |
+| ![Mean Speed by Platform](docs/images/spss_speed_bar.png) | ![Mean Usability by Platform](docs/images/spss_usability_bar.png) |
 
 #### 3. Data Consumption & Reaction Time Analysis (Android vs. Web)
 A comparative analysis of data consumption and reaction time was conducted between the Android and Web versions.
 
-![Data Consumption Comparison](spss_dataconsumption_bar.png)
+![Data Consumption Comparison](docs/images/spss_dataconsumption_bar.png)
 
 * **Data Consumption**: The web application showed better performance with an average data consumption of 28.00 ms, compared to 30.15 ms for the Android application.
 * **Statistical Significance**: Despite this difference, the p-value was 0.209 (p > 0.05), indicating no statistically significant difference.
