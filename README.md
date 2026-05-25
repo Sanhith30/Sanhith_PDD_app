@@ -1,7 +1,7 @@
-# <p align="center">🩺 Saveetha Oral Sentry (Oral Ulcer AI)</p>
+# <p align="center">Saveetha Oral Sentry (Oral Ulcer AI)</p>
 
 <p align="center">
-  <strong>A Hybrid Clinical-Grade Decision Support System for Oral Lesion Screening & Risk Stratification</strong>
+  <strong>A Hybrid Clinical-Grade Decision Support System for Oral Lesion Screening and Risk Stratification</strong>
 </p>
 
 <p align="center">
@@ -15,39 +15,39 @@
 </p>
 
 <p align="center">
-  <a href="#-key-features">Key Features</a> •
-  <a href="#-app-interface--demo">App Demo</a> •
-  <a href="#%EF%B8%8F-system-architecture">System Architecture</a> •
-  <a href="#-hybrid-ai-inference-engine">Hybrid AI Deep Dive</a> •
-  <a href="#-spss-statistical-results">SPSS Results</a> •
-  <a href="#-installation--setup">Setup Guide</a>
+  <a href="#key-features">Key Features</a> •
+  <a href="#app-interface-and-demo">App Demo</a> •
+  <a href="#system-architecture">System Architecture</a> •
+  <a href="#hybrid-ai-inference-engine">Hybrid AI Deep Dive</a> •
+  <a href="#spss-statistical-results">SPSS Results</a> •
+  <a href="#installation-and-setup">Setup Guide</a>
 </p>
 
 ---
 
-## 📖 Project Overview
+## Project Overview
 
-**Saveetha Oral Sentry** is an advanced mobile-web clinical decision support application designed to assist dental professionals and clinicians in the early screening, risk stratification, and monitoring of oral ulcers and potentially malignant oral disorders (OPMDs). 
+Saveetha Oral Sentry is an advanced mobile-web clinical decision support application designed to assist dental professionals and clinicians in the early screening, risk stratification, and monitoring of oral ulcers and potentially malignant oral disorders (OPMDs).
 
-Rather than relying on a simple "black-box" visual model, this system employs a **hybrid assessment pipeline** that cross-evaluates a patient's tabular clinical features, medical history, and OpenCV image heuristics alongside a deep learning convolutional neural network (CNN) image model. By providing explainable risk scores and actionable biopsy recommendations, it helps clinicians speed up critical patient referrals, prevent unnecessary biopsies, and optimize diagnostic workflows.
-
----
-
-## 🌟 Key Features
-
-* **🔐 Clinician Onboarding & Security**: Secure token-based session management (`PyJWT`) with password reset capabilities utilizing an OTP system sent via Gmail SMTP.
-* **📱 Premium "Surgical Luxury" UI**: Built with a dark maroon and gold aesthetic specifically designed for clinical and hospital environments.
-* **🗂️ Patient Case Management**: Complete profile management with local caching via SQLite (`sqflite`), allowing doctors to review patient history and visits offline.
-* **🧠 Explainable Hybrid AI**: Risk scores calculated dynamically by fusing visual predictions (Deep Learning) and patient diagnostic variables (Machine Learning) using red-flag rules.
-* **👁️ Computer Vision Processing**: OpenCV heuristics run locally to isolate and check for lesion color intensity (Erythema), margins, and borders.
-* **📊 Visual Analytics**: Interactive fl_charts detailing patient risk distributions over time.
-* **📄 Automated Referral Reports**: Generates formal clinical PDF reports ready for printing or routing to referral centers.
+Rather than relying on a simple "black-box" visual model, this system employs a hybrid assessment pipeline that cross-evaluates a patient's tabular clinical features, medical history, and OpenCV image heuristics alongside a deep learning convolutional neural network (CNN) image model. By providing explainable risk scores and actionable biopsy recommendations, it helps clinicians speed up critical patient referrals, prevent unnecessary biopsies, and optimize diagnostic workflows.
 
 ---
 
-## 📸 App Interface & Demo
+## Key Features
 
-> **🎥 Watch the Full Video Demo Here:** [YouTube Shorts Demo](https://youtube.com/shorts/pcS3mV_aGtM)
+* **Clinician Onboarding and Security**: Secure token-based session management (PyJWT) with password reset capabilities utilizing an OTP system sent via Gmail SMTP.
+* **Premium "Surgical Luxury" UI**: Built with a dark maroon and gold aesthetic specifically designed for clinical and hospital environments.
+* **Patient Case Management**: Complete profile management with local caching via SQLite (sqflite), allowing doctors to review patient history and visits offline.
+* **Explainable Hybrid AI**: Risk scores calculated dynamically by fusing visual predictions (Deep Learning) and patient diagnostic variables (Machine Learning) using red-flag rules.
+* **Computer Vision Processing**: OpenCV heuristics run locally to isolate and check for lesion color intensity (Erythema), margins, and borders.
+* **Visual Analytics**: Interactive fl_charts detailing patient risk distributions over time.
+* **Automated Referral Reports**: Generates formal clinical PDF reports ready for printing or routing to referral centers.
+
+---
+
+## App Interface and Demo
+
+> **Watch the Full Video Demo Here:** [YouTube Shorts Demo](https://youtube.com/shorts/pcS3mV_aGtM)
 
 | Splash Screen | Dashboard | AI Result & Risk Analysis |
 |:---:|:---:|:---:|
@@ -55,7 +55,7 @@ Rather than relying on a simple "black-box" visual model, this system employs a 
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 The application is structured on a modern, decoupled client-server architecture built for enterprise stability and low latency:
 
@@ -86,10 +86,10 @@ graph TD
     AIEngine -->|Risk Score| API
 ```
 
-### 1. Mobile Frontend (Flutter & Dart)
+### 1. Mobile Frontend (Flutter and Dart)
 A native-performance client implementing stateful flows, offline-first SQLite caching, native camera image capture, PDF rendering, and interactive graphing engines.
 
-### 2. Backend API (Python & FastAPI)
+### 2. Backend API (Python and FastAPI)
 A high-performance asynchronous web API that manages session state, JWT authentications, PostgreSQL transaction sessions, database updates, and delegates concurrent CPU/GPU workloads to the AI engine.
 
 ### 3. Database Layer (PostgreSQL)
@@ -97,9 +97,9 @@ A relational database storing clinician accounts, patient information profiles, 
 
 ---
 
-## 🧠 Hybrid AI Inference Engine
+## Hybrid AI Inference Engine
 
-The core clinical value of **Saveetha Oral Sentry** is its hybrid risk model. It integrates three separate analytical methods to compute a final risk percentage:
+The core clinical value of Saveetha Oral Sentry is its hybrid risk model. It integrates three separate analytical methods to compute a final risk percentage:
 
 ```mermaid
 graph TD
@@ -129,47 +129,47 @@ graph TD
     J -->|JSON Response| M
 ```
 
-### 1. Tabular Machine Learning (`clinical_model.pkl`) - 60% Weight
+### 1. Tabular Machine Learning (clinical_model.pkl) - 60% Weight
 * Evaluates patient demographics (age, sex), habits (smoking status, duration, alcohol intake), clinical examination metrics (site, size, shape, margins), and red-flag symptoms (induration, node mobility, paraesthesia).
 * Uses a Scikit-Learn Random Forest model to calculate a clinical risk probability.
 
-### 2. Visual Deep Learning (`oral_risk_mobilenet.h5`) - 40% Weight
-* Implements a Convolutional Neural Network (CNN) built on a pre-trained **MobileNetV2** architecture, optimized for clinical mobile environments.
+### 2. Visual Deep Learning (oral_risk_mobilenet.h5) - 40% Weight
+* Implements a Convolutional Neural Network (CNN) built on a pre-trained MobileNetV2 architecture, optimized for clinical mobile environments.
 * Analyzes pixel variations, lesion shape, color, and cell-boundary irregularities.
 
-### 3. OpenCV Color & Texture Heuristics
+### 3. OpenCV Color and Texture Heuristics
 * Runs real-time image filter processes to compute structural redness indicators (Erythema intensity) and boundary definitions.
-* Generates clear, human-readable visual flags (e.g., *"Irregular borders detected"*, *"High redness index"*).
+* Generates clear, human-readable visual flags (e.g., "Irregular borders detected", "High redness index").
 
-### 🔢 Hybrid Risk Score Integration
+### Hybrid Risk Score Integration
 $$\text{Final Risk Score} = (\text{Clinical Score} \times 0.6) + (\text{Visual Score} \times 0.4)$$
 
 The final score categorizes cases into risk profiles:
-* **🔴 High Risk ($\ge 70\%$)**: *Action:* Urgent Biopsy Required.
-* **🟡 Intermediate Risk ($35\% - 69\%$)**: *Action:* Close Monitoring / Incisional Biopsy.
-* **🟢 Low Risk ($< 35\%$)**: *Action:* Topical Management / Review in 2 weeks.
+* **High Risk (>= 70%)**: Action: Urgent Biopsy Required.
+* **Intermediate Risk (35% - 69%)**: Action: Close Monitoring / Incisional Biopsy.
+* **Low Risk (< 35%)**: Action: Topical Management / Review in 2 weeks.
 
 ---
 
-## 📊 SPSS Statistical Results
+## SPSS Statistical Results
 
-To validate the application's real-world usability and efficiency, we conducted a rigorous comparative usability study between the **Android Native Client** and **Web Client** versions across 50 simulated clinical test cases. The data was analyzed using **IBM SPSS Statistics (Independent Samples T-Test)**.
+To validate the application's real-world usability and efficiency, we conducted a rigorous comparative usability study between the Android Native Client and Web Client versions across 50 simulated clinical test cases. The data was analyzed using IBM SPSS Statistics (Independent Samples T-Test).
 
-### 📈 Platform Performance Summary Table
+### Platform Performance Summary Table
 
 | Evaluation Criteria | Android (Mean) | Web (Mean) | P-Value (Sig. 2-tailed) | Statistical Significance |
 | :--- | :---: | :---: | :---: | :---: |
-| **Speed (Execution)** | 120.0 ms | 257.0 ms | **0.001** | Highly Significant ($p < 0.05$) |
-| **Response Time** | 1.24 s | 2.66 s | **0.002** | Highly Significant ($p < 0.05$) |
-| **User Satisfaction** | 4.60 / 5 | 3.60 / 5 | **0.012** | Significant ($p < 0.05$) |
-| **Ease of Use (SUS)** | 4.42 / 5 | 3.68 / 5 | **0.008** | Significant ($p < 0.05$) |
-| **Efficiency (Task Time)** | 45.8 s | 68.4 s | **0.003** | Significant ($p < 0.05$) |
-| **Error Rate (Avg)** | 0.20 | 1.40 | **0.004** | Significant ($p < 0.05$) |
-| **Data Consumption** | 30.15 ms | 28.00 ms | **0.209** | Not Significant ($p > 0.05$) |
+| **Speed (Execution)** | 120.0 ms | 257.0 ms | **0.001** | Highly Significant (p < 0.05) |
+| **Response Time** | 1.24 s | 2.66 s | **0.002** | Highly Significant (p < 0.05) |
+| **User Satisfaction** | 4.60 / 5 | 3.60 / 5 | **0.012** | Significant (p < 0.05) |
+| **Ease of Use (SUS)** | 4.42 / 5 | 3.68 / 5 | **0.008** | Significant (p < 0.05) |
+| **Efficiency (Task Time)** | 45.8 s | 68.4 s | **0.003** | Significant (p < 0.05) |
+| **Error Rate (Avg)** | 0.20 | 1.40 | **0.004** | Significant (p < 0.05) |
+| **Data Consumption** | 30.15 ms | 28.00 ms | **0.209** | Not Significant (p > 0.05) |
 
 *Note: The Android application demonstrated significantly faster performance, higher usability scores (SUS), and lower error rates due to native hardware acceleration and custom mobile optimizations.*
 
-### 🖥️ SPSS Output Screenshots & Bar Graphs
+### SPSS Output Screenshots and Bar Graphs
 
 #### 1. SPSS Output Viewer T-Test Results
 <p align="center">
@@ -183,10 +183,10 @@ To validate the application's real-world usability and efficiency, we conducted 
 
 ---
 
-## 🛠️ Installation & Setup
+## Installation and Setup
 
 <details>
-<summary>📂 Prerequisites</summary>
+<summary>Prerequisites</summary>
 
 * **Flutter SDK**: v3.16.x or newer
 * **Python**: v3.10.x or newer
@@ -195,7 +195,7 @@ To validate the application's real-world usability and efficiency, we conducted 
 </details>
 
 <details>
-<summary>🚀 Backend Setup (FastAPI)</summary>
+<summary>Backend Setup (FastAPI)</summary>
 
 1. Navigate to the backend directory:
    ```bash
@@ -217,7 +217,7 @@ To validate the application's real-world usability and efficiency, we conducted 
 </details>
 
 <details>
-<summary>📱 Frontend Setup (Flutter)</summary>
+<summary>Frontend Setup (Flutter)</summary>
 
 1. Navigate to the frontend directory:
    ```bash
@@ -244,10 +244,10 @@ To validate the application's real-world usability and efficiency, we conducted 
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 <details>
-<summary>🔐 POST /auth/signup (Clinician Registration)</summary>
+<summary>POST /auth/signup (Clinician Registration)</summary>
 
 * **Payload**:
   ```json
@@ -273,7 +273,7 @@ To validate the application's real-world usability and efficiency, we conducted 
 </details>
 
 <details>
-<summary>🧠 POST /predict_full (Hybrid AI Scoring Endpoint)</summary>
+<summary>POST /predict_full (Hybrid AI Scoring Endpoint)</summary>
 
 * **Type**: `Multipart Form-Data`
 * **Parameters**:
@@ -305,7 +305,7 @@ To validate the application's real-world usability and efficiency, we conducted 
 
 ---
 
-## 🔮 Future Roadmap
+## Future Roadmap
 
 - [ ] **Real-Time Cloud Synchronization**: Implement Firebase / Supabase synchronizations to enable multi-device medical workflows.
 - [ ] **Retraining & Expansion**: Re-train the CNN model with 10,000+ clinical images across diverse demographic profiles.
@@ -313,6 +313,6 @@ To validate the application's real-world usability and efficiency, we conducted 
 
 ---
 
-## 🤝 Contributors
+## Contributors
 
 * **Thikkavarapu Sanhith** - Lead Developer & AI Researcher
