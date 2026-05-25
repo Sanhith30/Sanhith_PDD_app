@@ -54,7 +54,29 @@ diagrams = {
     API <--> Auth
     API <--> DB
     API --> AIEngine
-    AIEngine -->|Risk Score| API"""
+    AIEngine -->|Risk Score| API""",
+
+    "hybrid_ai_flowchart.png": """graph TD
+    A[Lesion Image File] -->|Step 1: Upload| D[/predict_full endpoint/]
+    B[Patient History & Exam Data] -->|Step 1: Upload| D
+    
+    D -->|Extracts Tabular Data| E[clinical_model.pkl Scikit-Learn]
+    D -->|Extracts Image| F[oral_risk_mobilenet.h5 TensorFlow]
+    D -->|Runs OpenCV| G[Computer Vision Heuristics]
+    
+    subgraph FastAPI Backend App
+        E -->|Calculates| H[Clinical Risk Score 60%]
+        F -->|Calculates| I[Visual Risk Score 40%]
+        G -->|Detects| J[Erythema, Margins, Textures]
+        
+        H -->|Weighted Integration| K[Final Risk Score 0-100%]
+        I -->|Weighted Integration| K
+        
+        K -->|Triggers| L[Risk Category & Recommendation]
+    end
+    
+    L -->|JSON Response| M[Flutter App UI Dashboard]
+    J -->|JSON Response| M"""
 }
 
 os.chdir(r"c:\Users\SANHITH REDDY\Downloads\xyz\flutter_application_1")

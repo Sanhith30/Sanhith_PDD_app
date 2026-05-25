@@ -40,7 +40,19 @@ The risk assessment is not a simple black box; it uses a transparent, hybrid app
 - **Heuristic Flags**: OpenCV-based image heuristics (Erythema, Surface Texture, Edges) and clinical red-flag logical rules (e.g., duration > 3 weeks, fixed lymph nodes, induration) provide explainable "texture" to the AI's decision.
 - **Final Score Calculation**: The system aggregates these inputs into a final prediction weighted as **60% Clinical AI + 40% Visual AI**, producing a final risk percentage and category.
 
+### 4. Hybrid AI Inference Pipeline
+
+![Hybrid AI Inference Pipeline](hybrid_ai_flowchart.png)
+
+When a clinician requests a risk assessment, the FastAPI server runs the patient through a multi-stage hybrid inference pipeline:
+1. **Inputs Uploaded**: The Flutter app sends the lesion image file and patient history/examination details to the `/predict_full` API endpoint.
+2. **Tabular Feature Analysis**: The clinical machine learning model (`clinical_model.pkl` using Scikit-Learn) processes the tabular features (lifestyle, history, and physical examination findings) to compute a baseline clinical score (60% weight).
+3. **Deep Learning Image Analysis**: The visual neural network (`oral_risk_mobilenet.h5` based on MobileNetV2) processes the uploaded image to output a visual risk score (40% weight).
+4. **OpenCV Heuristic Checks**: Computer vision filters analyze the image to identify surface erythema (intense redness), margins, and texture abnormalities.
+5. **Weighted Scoring & Recommendation**: The system combines the scores (60% clinical + 40% visual) into a single unified risk score (0-100%). This score determines the final risk category (Low, Intermediate, or High) and generates actionable biopsy recommendations, which are returned as a JSON payload to the clinician's mobile dashboard.
+
 ---
+
 
 ## 💻 Tech Stack
 
