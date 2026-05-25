@@ -122,6 +122,8 @@ From start to finish, we have implemented a complete, clinical-grade pipeline:
 ### MATERIALS AND METHODS
 1. **Architecture Diagram of processing:**
 
+![Materials and Methods Flowchart](materials_methods_flowchart_horizontal.png)
+
 ![System Architecture Diagram](system_diagram.png)
 
 2. **Explanation to solve the research Gap:** 
@@ -145,6 +147,10 @@ As per project requirements, a comparative analysis was performed between the An
 | **Error Rate (Avg)** | 0.20 | 1.40 | 0.004* |
 
 *Note: Android version showed significantly higher efficiency and user satisfaction due to native hardware acceleration and optimized mobile UI.*
+
+**SPSS Statistical Analysis Output:**
+![SPSS Analysis Output](spss_output.png)
+
 
 ### DISCUSSION AND CONCLUSION
 1. **Accuracy details:** The hybrid algorithm enhances overall diagnostic confidence by cross-verifying the visual predictions of the MobileNetV2 architecture with the statistical predictions of the clinical Random Forest model.
