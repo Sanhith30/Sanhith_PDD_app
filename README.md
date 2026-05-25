@@ -151,6 +151,11 @@ As per project requirements, a comparative analysis was performed between the An
 **SPSS Statistical Analysis Output:**
 ![SPSS Analysis Output](spss_output.png)
 
+**SPSS Mean Performance Comparison (95% CI):**
+| Mean Speed (ms) | Mean Usability (1-5) |
+| :---: | :---: |
+| ![Mean Speed by Platform](spss_speed_bar.png) | ![Mean Usability by Platform](spss_usability_bar.png) |
+
 
 ### DISCUSSION AND CONCLUSION
 1. **Accuracy details:** The hybrid algorithm enhances overall diagnostic confidence by cross-verifying the visual predictions of the MobileNetV2 architecture with the statistical predictions of the clinical Random Forest model.
