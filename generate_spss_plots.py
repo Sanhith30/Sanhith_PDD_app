@@ -93,7 +93,7 @@ if has_csv:
 # Mean Data Consumption: Web = 28.00 ms, iOS = 30.15 ms.
 fig, ax = plt.subplots(figsize=(8, 4.5), facecolor='white')
 
-platforms = ['"IOS"', '"WEB"']
+platforms = ['"ANDROID"', '"WEB"']
 means = [30.15, 28.00]
 # CIs matching the visual error bars in the screenshot (approx. 7.0 for iOS, 6.0 for Web)
 errors = [7.0, 6.0]

@@ -156,14 +156,14 @@ As per project requirements, a comparative analysis was performed between the An
 | :---: | :---: |
 | ![Mean Speed by Platform](spss_speed_bar.png) | ![Mean Usability by Platform](spss_usability_bar.png) |
 
-#### 3. Data Consumption & Reaction Time Analysis (iOS vs. Web)
-A comparative analysis of data consumption and reaction time was conducted between the iOS and Web versions.
+#### 3. Data Consumption & Reaction Time Analysis (Android vs. Web)
+A comparative analysis of data consumption and reaction time was conducted between the Android and Web versions.
 
 ![Data Consumption Comparison](spss_dataconsumption_bar.png)
 
-* **Data Consumption**: The web application showed better performance with an average data consumption of 28.00 ms, compared to 30.15 ms for the iOS application.
+* **Data Consumption**: The web application showed better performance with an average data consumption of 28.00 ms, compared to 30.15 ms for the Android application.
 * **Statistical Significance**: Despite this difference, the p-value was 0.209 (p > 0.05), indicating no statistically significant difference.
-* **Reaction Time**: A separate test showed the web app's reaction time was 31.21 ms, slightly better than the iOS app's 32.41 ms, with p = 0.254 (still not significant).
+* **Reaction Time**: A separate test showed the web app's reaction time was 31.21 ms, slightly better than the Android app's 32.41 ms, with p = 0.254 (still not significant).
 * **Overall Conclusion**: Overall, the web app appeared faster and more efficient, though not significantly so in statistical terms.
 
 
