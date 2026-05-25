@@ -185,17 +185,14 @@ To validate the application's real-world usability and efficiency, we conducted 
 
 ## Installation and Setup
 
-<details>
-<summary>Prerequisites</summary>
+### Prerequisites
 
 * **Flutter SDK**: v3.16.x or newer
 * **Python**: v3.10.x or newer
 * **PostgreSQL**: v14.x or newer (optional, default falls back to SQLite)
 * **Dart**: v3.x
-</details>
 
-<details>
-<summary>Backend Setup (FastAPI)</summary>
+### Backend Setup (FastAPI)
 
 1. Navigate to the backend directory:
    ```bash
@@ -214,10 +211,8 @@ To validate the application's real-world usability and efficiency, we conducted 
    ```bash
    uvicorn app:app --host 0.0.0.0 --port 8000 --reload
    ```
-</details>
 
-<details>
-<summary>Frontend Setup (Flutter)</summary>
+### Frontend Setup (Flutter)
 
 1. Navigate to the frontend directory:
    ```bash
@@ -240,14 +235,12 @@ To validate the application's real-world usability and efficiency, we conducted 
    ```bash
    flutter run
    ```
-</details>
 
 ---
 
 ## API Reference
 
-<details>
-<summary>POST /auth/signup (Clinician Registration)</summary>
+### POST /auth/signup (Clinician Registration)
 
 * **Payload**:
   ```json
@@ -270,10 +263,8 @@ To validate the application's real-world usability and efficiency, we conducted 
     }
   }
   ```
-</details>
 
-<details>
-<summary>POST /predict_full (Hybrid AI Scoring Endpoint)</summary>
+### POST /predict_full (Hybrid AI Scoring Endpoint)
 
 * **Type**: `Multipart Form-Data`
 * **Parameters**:
@@ -301,7 +292,6 @@ To validate the application's real-world usability and efficiency, we conducted 
     ]
   }
   ```
-</details>
 
 ---
 
