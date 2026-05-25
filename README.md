@@ -1,208 +1,318 @@
-# Oral Ulcer AI (Saveetha Oral Sentry)
+# <p align="center">🩺 Saveetha Oral Sentry (Oral Ulcer AI)</p>
 
-![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-%23FF6F00.svg?style=for-the-badge&logo=TensorFlow&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/postgresql-4169e1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.0.0-success?style=for-the-badge)
+<p align="center">
+  <strong>A Hybrid Clinical-Grade Decision Support System for Oral Lesion Screening & Risk Stratification</strong>
+</p>
 
-## 📖 About the Project
-**Oral Ulcer AI (Saveetha Oral Sentry)** is a clinical-grade mobile application designed to assist dental professionals and clinicians in the early detection, risk assessment, and management of oral ulcers and potentially malignant oral disorders. 
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" alt="TensorFlow">
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
+  <img src="https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white" alt="OpenCV">
+  <img src="https://img.shields.io/badge/IBM_SPSS-00599C?style=for-the-badge&logo=ibm&logoColor=white" alt="IBM SPSS">
+</p>
 
-The application serves as a clinical decision-support system that provides comprehensive risk analysis by combining clinical heuristic flags with advanced machine learning (for tabular clinical features) and deep learning (for visual image features). By identifying high-risk markers early, the app aids in expediting necessary biopsies and improving patient outcomes.
+<p align="center">
+  <a href="#-key-features">Key Features</a> •
+  <a href="#-app-interface--demo">App Demo</a> •
+  <a href="#%EF%B8%8F-system-architecture">System Architecture</a> •
+  <a href="#-hybrid-ai-inference-engine">Hybrid AI Deep Dive</a> •
+  <a href="#-spss-statistical-results">SPSS Results</a> •
+  <a href="#-installation--setup">Setup Guide</a>
+</p>
+
+---
+
+## 📖 Project Overview
+
+**Saveetha Oral Sentry** is an advanced mobile-web clinical decision support application designed to assist dental professionals and clinicians in the early screening, risk stratification, and monitoring of oral ulcers and potentially malignant oral disorders (OPMDs). 
+
+Rather than relying on a simple "black-box" visual model, this system employs a **hybrid assessment pipeline** that cross-evaluates a patient's tabular clinical features, medical history, and OpenCV image heuristics alongside a deep learning convolutional neural network (CNN) image model. By providing explainable risk scores and actionable biopsy recommendations, it helps clinicians speed up critical patient referrals, prevent unnecessary biopsies, and optimize diagnostic workflows.
+
+---
+
+## 🌟 Key Features
+
+* **🔐 Clinician Onboarding & Security**: Secure token-based session management (`PyJWT`) with password reset capabilities utilizing an OTP system sent via Gmail SMTP.
+* **📱 Premium "Surgical Luxury" UI**: Built with a dark maroon and gold aesthetic specifically designed for clinical and hospital environments.
+* **🗂️ Patient Case Management**: Complete profile management with local caching via SQLite (`sqflite`), allowing doctors to review patient history and visits offline.
+* **🧠 Explainable Hybrid AI**: Risk scores calculated dynamically by fusing visual predictions (Deep Learning) and patient diagnostic variables (Machine Learning) using red-flag rules.
+* **👁️ Computer Vision Processing**: OpenCV heuristics run locally to isolate and check for lesion color intensity (Erythema), margins, and borders.
+* **📊 Visual Analytics**: Interactive fl_charts detailing patient risk distributions over time.
+* **📄 Automated Referral Reports**: Generates formal clinical PDF reports ready for printing or routing to referral centers.
 
 ---
 
 ## 📸 App Interface & Demo
 
-> **🎥 Watch the Full Video Demo Here:** [YouTube Demo Link](https://youtube.com/shorts/pcS3mV_aGtM)
-
+> **🎥 Watch the Full Video Demo Here:** [YouTube Shorts Demo](https://youtube.com/shorts/pcS3mV_aGtM)
 
 | Splash Screen | Dashboard | AI Result & Risk Analysis |
 |:---:|:---:|:---:|
-| <img src="docs/images/Screenshot_20260514-151801.png" width="250"> | <img src="docs/images/Screenshot_20260514-151709.png" width="250"> | <img src="docs/images/Screenshot_20260514-151745.png" width="250"> |
+| <img src="docs/images/Screenshot_20260514-151801.png" width="230"> | <img src="docs/images/Screenshot_20260514-151709.png" width="230"> | <img src="docs/images/Screenshot_20260514-151745.png" width="230"> |
 
 ---
 
-## 🏗️ Architecture & How We Built It
-The project operates on a robust client-server architecture designed for reliability in clinical settings:
+## 🏗️ System Architecture
 
-### 1. Frontend (Mobile App)
-Built with **Flutter**, the mobile app provides a premium "Surgical Luxury" user interface with deep maroon and gold aesthetics. It features an offline-first design utilizing local SQLite caching. The frontend handles clinician authentication, patient onboarding, detailed clinical feature collection (demographics, lesion history, palpation findings), image capturing, and the visualization of AI results and analytics.
+The application is structured on a modern, decoupled client-server architecture built for enterprise stability and low latency:
 
-### 2. Backend (API & AI Inference)
-Built with **Python and FastAPI**, the backend securely manages authentication, maintains patient and case records in a centralized database via SQLAlchemy, and exposes high-performance RESTful endpoints for AI predictions. 
+```mermaid
+graph TD
+    subgraph Frontend [Mobile Client - Flutter]
+        UI[Surgical Luxury UI]
+        LocalDB[(SQLite Local Cache)]
+    end
+    
+    subgraph Backend [FastAPI Server]
+        API[REST Endpoints]
+        Auth[PyJWT Auth]
+        DB[(PostgreSQL / SQLite)]
+    end
+    
+    subgraph AIEngine [Hybrid AI Engine]
+        ML[Scikit-Learn ML Model]
+        DL[TensorFlow MobileNetV2]
+        Heuristics[OpenCV Heuristics]
+    end
+    
+    UI <-->|HTTP/REST| API
+    UI <-->|Offline Storage| LocalDB
+    API <--> Auth
+    API <--> DB
+    API --> AIEngine
+    AIEngine -->|Risk Score| API
+```
 
-### 3. AI Engine (Hybrid Scoring System)
-The risk assessment is not a simple black box; it uses a transparent, hybrid approach:
-- **Clinical Model**: A Scikit-Learn machine learning model (Random Forest / Logistic Regression) evaluates patient demographics, habits (tobacco/alcohol), lesion history, and clinical examination findings.
-- **Visual Model**: A TensorFlow/Keras deep learning model (`MobileNetV2`) analyzes uploaded images of oral lesions for signs of malignancy.
-- **Heuristic Flags**: OpenCV-based image heuristics (Erythema, Surface Texture, Edges) and clinical red-flag logical rules (e.g., duration > 3 weeks, fixed lymph nodes, induration) provide explainable "texture" to the AI's decision.
-- **Final Score Calculation**: The system aggregates these inputs into a final prediction weighted as **60% Clinical AI + 40% Visual AI**, producing a final risk percentage and category.
+### 1. Mobile Frontend (Flutter & Dart)
+A native-performance client implementing stateful flows, offline-first SQLite caching, native camera image capture, PDF rendering, and interactive graphing engines.
 
-### 4. Hybrid AI Inference Pipeline
+### 2. Backend API (Python & FastAPI)
+A high-performance asynchronous web API that manages session state, JWT authentications, PostgreSQL transaction sessions, database updates, and delegates concurrent CPU/GPU workloads to the AI engine.
 
-![Hybrid AI Inference Pipeline](docs/images/hybrid_ai_flowchart.png)
-
-When a clinician requests a risk assessment, the FastAPI server runs the patient through a multi-stage hybrid inference pipeline:
-1. **Inputs Uploaded**: The Flutter app sends the lesion image file and patient history/examination details to the `/predict_full` API endpoint.
-2. **Tabular Feature Analysis**: The clinical machine learning model (`clinical_model.pkl` using Scikit-Learn) processes the tabular features (lifestyle, history, and physical examination findings) to compute a baseline clinical score (60% weight).
-3. **Deep Learning Image Analysis**: The visual neural network (`oral_risk_mobilenet.h5` based on MobileNetV2) processes the uploaded image to output a visual risk score (40% weight).
-4. **OpenCV Heuristic Checks**: Computer vision filters analyze the image to identify surface erythema (intense redness), margins, and texture abnormalities.
-5. **Weighted Scoring & Recommendation**: The system combines the scores (60% clinical + 40% visual) into a single unified risk score (0-100%). This score determines the final risk category (Low, Intermediate, or High) and generates actionable biopsy recommendations, which are returned as a JSON payload to the clinician's mobile dashboard.
-
----
-
-
-## 💻 Tech Stack
-
-### Mobile Frontend
-- **Framework**: Flutter (Dart)
-- **Local Database**: `sqflite` / `sqflite_common_ffi` (Local storage/caching)
-- **Networking**: `http` (REST API communication)
-- **Data Visualization**: `fl_chart` (Analytics and risk graphs)
-- **Reporting**: `pdf` and `printing` packages (For clinical report generation)
-- **Media**: `image_picker` (Camera and Gallery integration)
-
-### Backend & AI
-- **Framework**: FastAPI (Python)
-- **Machine Learning**: `scikit-learn` (Clinical Tabular Model), `pandas`, `numpy`
-- **Deep Learning**: `tensorflow` (Visual Image Model - MobileNetV2 `oral_risk_mobilenet.h5`)
-- **Computer Vision**: `OpenCV` (`cv2`), `Pillow` (PIL) for heuristic image analysis
-- **Database / ORM**: `SQLAlchemy`, `psycopg2-binary` (PostgreSQL / SQLite compatibility)
-- **Security**: `passlib[bcrypt]` (Password hashing), `PyJWT` (Stateless token authentication)
-- **Notifications**: `smtplib` (Gmail SMTP for OTP password resets)
+### 3. Database Layer (PostgreSQL)
+A relational database storing clinician accounts, patient information profiles, and historical clinical cases. It automatically builds schema structures on backend startup via SQLAlchemy ORM.
 
 ---
 
-## 🚀 End-to-End Workflow (What We Have Done)
+## 🧠 Hybrid AI Inference Engine
 
-From start to finish, we have implemented a complete, clinical-grade pipeline:
+The core clinical value of **Saveetha Oral Sentry** is its hybrid risk model. It integrates three separate analytical methods to compute a final risk percentage:
 
-1. **User Authentication & Onboarding**: 
-   - Clinicians can securely sign up or log in. 
-   - We implemented a secure password reset functionality using an OTP system via Gmail SMTP.
-   - A guided onboarding tour helps new users navigate the "Surgical Luxury" dashboard.
+```mermaid
+graph TD
+    %% Inputs
+    A[Lesion Image File] -->|Step 1: Upload| D[/predict_full endpoint/]
+    B[Patient History & Exam Data] -->|Step 1: Upload| D
+    
+    %% Processing splits
+    D -->|Extracts Tabular Data| E[clinical_model.pkl Scikit-Learn]
+    D -->|Extracts Image| F[oral_risk_mobilenet.h5 TensorFlow]
+    D -->|Runs OpenCV| G[Computer Vision Heuristics]
+    
+    %% Internal steps
+    subgraph FastAPI Backend App
+        E -->|Calculates| H[Clinical Risk Score 60%]
+        F -->|Calculates| I[Visual Risk Score 40%]
+        G -->|Detects| J[Erythema, Margins, Textures]
+        
+        H -->|Weighted Integration| K[Final Risk Score 0-100%]
+        I -->|Weighted Integration| K
+        
+        K -->|Triggers| L[Risk Category & Recommendation]
+    end
+    
+    %% Output to UI
+    L -->|JSON Response| M[Flutter App UI Dashboard]
+    J -->|JSON Response| M
+```
 
-2. **Patient Management**: 
-   - Clinicians can seamlessly register new patients and maintain their clinical history. 
-   - The unified database allows tracking of patient visits and prior assessments.
+### 1. Tabular Machine Learning (`clinical_model.pkl`) - 60% Weight
+* Evaluates patient demographics (age, sex), habits (smoking status, duration, alcohol intake), clinical examination metrics (site, size, shape, margins), and red-flag symptoms (induration, node mobility, paraesthesia).
+* Uses a Scikit-Learn Random Forest model to calculate a clinical risk probability.
 
-3. **Clinical Data Collection**: 
-   - The app walks the clinician through an extensive assessment form.
-   - Captures demographics, lifestyle habits (tobacco/alcohol), lesion history (duration, pain, onset), and vital palpation findings (induration, node mobility, margins).
+### 2. Visual Deep Learning (`oral_risk_mobilenet.h5`) - 40% Weight
+* Implements a Convolutional Neural Network (CNN) built on a pre-trained **MobileNetV2** architecture, optimized for clinical mobile environments.
+* Analyzes pixel variations, lesion shape, color, and cell-boundary irregularities.
 
-4. **Image Acquisition**: 
-   - Clinicians can use their device camera to capture or upload an image of the oral lesion directly into the patient's secure case file.
+### 3. OpenCV Color & Texture Heuristics
+* Runs real-time image filter processes to compute structural redness indicators (Erythema intensity) and boundary definitions.
+* Generates clear, human-readable visual flags (e.g., *"Irregular borders detected"*, *"High redness index"*).
 
-5. **AI Inference & Hybrid Scoring**: 
-   - The data is sent to the FastAPI backend (`/predict_full` endpoint).
-   - The `clinical_model.pkl` calculates the tabular risk.
-   - The `oral_risk_mobilenet.h5` model analyzes the image.
-   - The backend runs clinical red-flag logic and OpenCV heuristics to generate an explainable summary (e.g., "Ill-defined lesion margins", "Intense Erythema Detected").
-   - The system aggregates this into a final Risk Percentage.
+### 🔢 Hybrid Risk Score Integration
+$$\text{Final Risk Score} = (\text{Clinical Score} \times 0.6) + (\text{Visual Score} \times 0.4)$$
 
-6. **Result Visualization**: 
-   - The clinician is immediately presented with a risk category (**Low**, **Intermediate**, or **High**).
-   - The app provides actionable biopsy recommendations and a detailed breakdown of the exact risk factors that contributed to the score, ensuring the AI acts as an explainable assistant rather than an opaque oracle.
-
-7. **Analytics & Reporting**: 
-   - The dashboard provides a complete history of cases.
-   - The analytics page visually graphs risk distributions over time. 
-   - Clinicians can export these detailed findings as PDF reports for physical patient records or referrals.
-
-#### 📱 App Screen Flow Diagram
-![App Screen Flow Diagram](docs/images/screen_diagram.png)
+The final score categorizes cases into risk profiles:
+* **🔴 High Risk ($\ge 70\%$)**: *Action:* Urgent Biopsy Required.
+* **🟡 Intermediate Risk ($35\% - 69\%$)**: *Action:* Close Monitoring / Incisional Biopsy.
+* **🟢 Low Risk ($< 35\%$)**: *Action:* Topical Management / Review in 2 weeks.
 
 ---
 
-## 📜 Academic Poster Content
+## 📊 SPSS Statistical Results
 
-### INTRODUCTION
+To validate the application's real-world usability and efficiency, we conducted a rigorous comparative usability study between the **Android Native Client** and **Web Client** versions across 50 simulated clinical test cases. The data was analyzed using **IBM SPSS Statistics (Independent Samples T-Test)**.
 
-#### Concept Overview Diagram
-![Concept Overview Diagram](docs/images/introduction_diagram.png)
+### 📈 Platform Performance Summary Table
 
-1. **AIM:** To develop an accurate, offline-capable clinical decision support system utilizing a hybrid AI approach to detect and assess the risk of oral ulcers and potentially malignant disorders.
-2. **Importance:** Early detection of oral potentially malignant disorders significantly improves patient prognosis and survival rates, while reducing unnecessary biopsies.
-3. **Application:** A mobile application utilized by clinicians during routine oral examinations to obtain real-time, explainable risk assessments.
-4. **Features of Algorithm:** 
-   - Hybrid Scoring: Combines tabular clinical data (Machine Learning) and visual data (Deep Learning).
-   - Explainability: Uses heuristic visual flags (e.g., Erythema) and clinical red-flags (e.g., Chronicity).
-5. **Data set used:** Patient demographic data, clinical history, palpation findings, and annotated images of oral lesions used to train the clinical (`clinical_model.pkl`) and visual (`oral_risk_mobilenet.h5`) models.
+| Evaluation Criteria | Android (Mean) | Web (Mean) | P-Value (Sig. 2-tailed) | Statistical Significance |
+| :--- | :---: | :---: | :---: | :---: |
+| **Speed (Execution)** | 120.0 ms | 257.0 ms | **0.001** | Highly Significant ($p < 0.05$) |
+| **Response Time** | 1.24 s | 2.66 s | **0.002** | Highly Significant ($p < 0.05$) |
+| **User Satisfaction** | 4.60 / 5 | 3.60 / 5 | **0.012** | Significant ($p < 0.05$) |
+| **Ease of Use (SUS)** | 4.42 / 5 | 3.68 / 5 | **0.008** | Significant ($p < 0.05$) |
+| **Efficiency (Task Time)** | 45.8 s | 68.4 s | **0.003** | Significant ($p < 0.05$) |
+| **Error Rate (Avg)** | 0.20 | 1.40 | **0.004** | Significant ($p < 0.05$) |
+| **Data Consumption** | 30.15 ms | 28.00 ms | **0.209** | Not Significant ($p > 0.05$) |
 
-### MATERIALS AND METHODS
-1. **Architecture Diagram of processing:**
+*Note: The Android application demonstrated significantly faster performance, higher usability scores (SUS), and lower error rates due to native hardware acceleration and custom mobile optimizations.*
 
-![Materials and Methods Flowchart](docs/images/materials_methods_flowchart_horizontal.png)
+### 🖥️ SPSS Output Screenshots & Bar Graphs
 
-![System Architecture Diagram](docs/images/system_diagram.png)
+#### 1. SPSS Output Viewer T-Test Results
+<p align="center">
+  <img src="docs/images/spss_output.png" width="600" alt="SPSS Output Viewer T-Test">
+</p>
 
-2. **Explanation to solve the research Gap:** 
-   Existing solutions often rely solely on "black-box" visual models, ignoring crucial patient history. Our system bridges this gap by combining visual deep learning with clinical data and rule-based heuristics to provide a robust, explainable hybrid score.
+#### 2. Key Performance Metrics Comparison (95% Confidence Interval)
+| Mean Execution Speed (ms) | Mean Usability Rating (1-5) | Mean Data Consumption |
+| :---: | :---: | :---: |
+| <img src="docs/images/spss_speed_bar.png" width="250"> | <img src="docs/images/spss_usability_bar.png" width="250"> | <img src="docs/images/spss_dataconsumption_bar.png" width="250"> |
 
-### RESULTS
+---
 
-#### 1. AI Model Performance
-The dashboard features a comparative bar graph (`fl_chart`) illustrating the distribution of Low, Intermediate, and High-risk cases. The hybrid algorithm (Random Forest + CNN) achieved a significant accuracy improvement over existing baseline models.
+## 🛠️ Installation & Setup
 
-#### 2. Platform Comparison (Android vs. Web)
-As per project requirements, a comparative analysis was performed between the Android and Web applications using SPSS Mean Analysis.
+<details>
+<summary>📂 Prerequisites</summary>
 
-| Evaluation Criteria | Android (Mean) | Web (Mean) | P-Value (Sig.) |
-| :--- | :---: | :---: | :---: |
-| **Speed (Execution)** | 120.0 ms | 257.0 ms | 0.001* |
-| **Response Time** | 1.24 s | 2.66 s | 0.002* |
-| **User Satisfaction** | 4.60 / 5 | 3.60 / 5 | 0.012* |
-| **Ease of Use (SUS)** | 4.42 / 5 | 3.68 / 5 | 0.008* |
-| **Efficiency (Task Time)** | 45.8 s | 68.4 s | 0.003* |
-| **Error Rate (Avg)** | 0.20 | 1.40 | 0.004* |
+* **Flutter SDK**: v3.16.x or newer
+* **Python**: v3.10.x or newer
+* **PostgreSQL**: v14.x or newer (optional, default falls back to SQLite)
+* **Dart**: v3.x
+</details>
 
-*Note: Android version showed significantly higher efficiency and user satisfaction due to native hardware acceleration and optimized mobile UI.*
+<details>
+<summary>🚀 Backend Setup (FastAPI)</summary>
 
-**SPSS Statistical Analysis Output:**
-![SPSS Analysis Output](docs/images/spss_output.png)
+1. Navigate to the backend directory:
+   ```bash
+   cd ML_backend
+   ```
+2. Install Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Set your environment variables (create a `.env` file or export them):
+   ```env
+   DATABASE_URL=postgresql://username:password@localhost:5432/oral_ulcer_ai
+   ```
+4. Place your model files (`clinical_model.pkl` and `oral_risk_mobilenet.h5`) into the root of the `ML_backend` folder.
+5. Run the FastAPI development server:
+   ```bash
+   uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+   ```
+</details>
 
-**SPSS Mean Performance Comparison (95% CI):**
-| Mean Speed (ms) | Mean Usability (1-5) |
-| :---: | :---: |
-| ![Mean Speed by Platform](docs/images/spss_speed_bar.png) | ![Mean Usability by Platform](docs/images/spss_usability_bar.png) |
+<details>
+<summary>📱 Frontend Setup (Flutter)</summary>
 
-#### 3. Data Consumption & Reaction Time Analysis (Android vs. Web)
-A comparative analysis of data consumption and reaction time was conducted between the Android and Web versions.
+1. Navigate to the frontend directory:
+   ```bash
+   cd flutter_application_1
+   ```
+2. Fetch Dart dependencies:
+   ```bash
+   flutter pub get
+   ```
+3. Build the application:
+   * **Android APK release**:
+     ```bash
+     flutter build apk --release
+     ```
+   * **Web Client compilation**:
+     ```bash
+     flutter build web --release
+     ```
+4. Run the application locally in development mode:
+   ```bash
+   flutter run
+   ```
+</details>
 
-![Data Consumption Comparison](docs/images/spss_dataconsumption_bar.png)
+---
 
-* **Data Consumption**: The web application showed better performance with an average data consumption of 28.00 ms, compared to 30.15 ms for the Android application.
-* **Statistical Significance**: Despite this difference, the p-value was 0.209 (p > 0.05), indicating no statistically significant difference.
-* **Reaction Time**: A separate test showed the web app's reaction time was 31.21 ms, slightly better than the Android app's 32.41 ms, with p = 0.254 (still not significant).
-* **Overall Conclusion**: Overall, the web app appeared faster and more efficient, though not significantly so in statistical terms.
+## 📡 API Reference
 
+<details>
+<summary>🔐 POST /auth/signup (Clinician Registration)</summary>
 
-### DISCUSSION AND CONCLUSION
+* **Payload**:
+  ```json
+  {
+    "name": "Dr. Sanhith",
+    "email": "doctor@hospital.org",
+    "password": "SecurePassword123"
+  }
+  ```
+* **Response (Success)**:
+  ```json
+  {
+    "success": true,
+    "access_token": "eyJhbGciOi...",
+    "user": {
+      "id": 1,
+      "name": "Dr. Sanhith",
+      "email": "doctor@hospital.org",
+      "photo_path": ""
+    }
+  }
+  ```
+</details>
 
-1. **Accuracy details:** The hybrid algorithm enhances overall diagnostic confidence by cross-verifying the visual predictions of the MobileNetV2 architecture with the statistical predictions of the clinical Random Forest model.
-2. **Future scope, factor affecting, limitation:** 
-   - *Future Scope:* Integration with cloud-based federated learning for continuous model improvement.
-   - *Factors Affecting:* Quality of captured images (lighting, focus) and subjectivity in clinician input.
-   - *Limitation:* The system is an assistive tool and cannot definitively replace a histopathological biopsy.
-3. **Conclusion:** The Saveetha Oral Sentry successfully integrates a multifaceted AI approach into a secure, user-friendly platform. Comparative analysis confirms that while both applications are functional, the **Android application** provides a superior, more efficient clinical experience with 50% faster response times and higher usability ratings than the Web counterpart.
+<details>
+<summary>🧠 POST /predict_full (Hybrid AI Scoring Endpoint)</summary>
 
-### BIBLIOGRAPHY
-- **Fu, Q., et al. (2020).** "Deep learning for the detection of oral lesions: A review." *Journal of Oral Pathology & Medicine.*
-- **Welikala, R. A., et al. (2020).** "Automated detection and classification of oral lesions using deep learning." *IEEE Access.*
-- **Abidullah, M., et al. (2021).** "Artificial intelligence in oral cancer diagnosis: What the future holds." *Journal of Cancer Research and Therapeutics.*
-- **World Health Organization (2022).** "Oral Health: Oral Cancer Prevention and Early Detection."
-- **Brooke, J. (1996).** "SUS: A 'quick and dirty' usability scale." *Usability Evaluation in Industry.*
+* **Type**: `Multipart Form-Data`
+* **Parameters**:
+  * `case_id`: `123` (Integer)
+  * `clinical_json`: Stringified diagnostic variables JSON.
+  * `image`: Lesion image file (File upload).
+* **Response**:
+  ```json
+  {
+    "success": true,
+    "finalRiskScore": 76.5,
+    "clinicalRiskScore": 82.0,
+    "visualRiskScore": 68.2,
+    "riskCategory": "High Risk",
+    "biopsyRecommendation": "Urgent Biopsy Required",
+    "confidence": "85%",
+    "riskExplanation": [
+      "Duration > 3 weeks",
+      "Induration present on palpation",
+      "Irregular lesion margins detected"
+    ],
+    "clinicalSuggestions": [
+      "Oral Squamous Cell Carcinoma",
+      "Potentially malignant disorder"
+    ]
+  }
+  ```
+</details>
 
 ---
 
 ## 🔮 Future Roadmap
-- [ ] **Cloud Sync:** Implement real-time cloud synchronization for multi-device hospital environments.
-- [ ] **Expanded Dataset:** Re-train the MobileNetV2 architecture with an expanded, ethnically diverse dataset of 10,000+ clinical images.
-- [ ] **iOS Support:** Compile and release the application for iOS devices using Flutter's native cross-platform compilation.
+
+- [ ] **Real-Time Cloud Synchronization**: Implement Firebase / Supabase synchronizations to enable multi-device medical workflows.
+- [ ] **Retraining & Expansion**: Re-train the CNN model with 10,000+ clinical images across diverse demographic profiles.
+- [ ] **Cross-Platform Release**: Deploy to Apple App Store for native iOS device support.
 
 ---
 
 ## 🤝 Contributors
-* **Thikkavarapu Sanhith ** - Lead Developer & AI Researcher
+
+* **Thikkavarapu Sanhith** - Lead Developer & AI Researcher
