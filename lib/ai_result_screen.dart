@@ -274,6 +274,60 @@ class AiResultScreen extends StatelessWidget {
   }
 
   Widget _buildImageCard(String imagePath) {
+    Widget imageWidget;
+    
+    if (imagePath.isEmpty) {
+      imageWidget = Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(Icons.image_not_supported_outlined,
+               size: 40, color: _muted.withOpacity(0.4)),
+          const SizedBox(height: 8),
+          Text('No image captured',
+               style: TextStyle(color: _muted.withOpacity(0.6),
+                   fontSize: 12)),
+        ]));
+    } else if (imagePath.startsWith('/static') || imagePath.startsWith('http')) {
+      final String fullUrl = imagePath.startsWith('http')
+          ? imagePath
+          : '${LocalDb.baseUrl}$imagePath';
+      imageWidget = Image.network(
+        fullUrl,
+        headers: const {'Bypass-Tunnel-Reminder': 'true'},
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.broken_image_outlined, size: 40, color: _muted.withOpacity(0.4)),
+              const SizedBox(height: 8),
+              Text('Failed to load image', style: TextStyle(color: _muted.withOpacity(0.6), fontSize: 12)),
+            ],
+          ),
+        ),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(
+            child: CircularProgressIndicator(
+              color: _maroon,
+              strokeWidth: 2,
+            ),
+          );
+        },
+      );
+    } else if (!kIsWeb && File(imagePath).existsSync()) {
+      imageWidget = Image.file(File(imagePath), fit: BoxFit.cover);
+    } else {
+      imageWidget = Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(Icons.image_not_supported_outlined,
+               size: 40, color: _muted.withOpacity(0.4)),
+          const SizedBox(height: 8),
+          Text('Image file not found',
+               style: TextStyle(color: _muted.withOpacity(0.6),
+                   fontSize: 12)),
+        ]));
+    }
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Lesion Image', style: TextStyle(color: _text, fontSize: 14,
           fontWeight: FontWeight.w600)),
@@ -287,17 +341,7 @@ class AiResultScreen extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
-          child: imagePath.isNotEmpty && !kIsWeb && File(imagePath).existsSync()
-              ? Image.file(File(imagePath), fit: BoxFit.cover)
-              : Center(child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.image_not_supported_outlined,
-                    size: 40, color: _muted.withOpacity(0.4)),
-                const SizedBox(height: 8),
-                Text('No image captured',
-                    style: TextStyle(color: _muted.withOpacity(0.6),
-                        fontSize: 12)),
-              ])),
+          child: imageWidget,
         ),
       ),
     ]);

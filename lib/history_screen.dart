@@ -186,9 +186,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
           child: Container(
             width: 50, height: 50,
             color: Colors.grey.shade100,
-            child: imagePath.isNotEmpty && !kIsWeb && File(imagePath).existsSync()
-                ? Image.file(File(imagePath), fit: BoxFit.cover)
-                : const Icon(Icons.image_not_supported, color: Colors.grey),
+            child: imagePath.isEmpty
+                ? const Icon(Icons.image_not_supported, color: Colors.grey)
+                : (imagePath.startsWith('/static') || imagePath.startsWith('http'))
+                    ? Image.network(
+                        imagePath.startsWith('http')
+                            ? imagePath
+                            : '${LocalDb.baseUrl}$imagePath',
+                        headers: const {'Bypass-Tunnel-Reminder': 'true'},
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.broken_image, color: Colors.grey),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: SizedBox(
+                              width: 16, height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 1.5, color: _maroon),
+                            ),
+                          );
+                        },
+                      )
+                    : (!kIsWeb && File(imagePath).existsSync())
+                        ? Image.file(File(imagePath), fit: BoxFit.cover)
+                        : const Icon(Icons.image_not_supported, color: Colors.grey),
           ),
         ),
         title: Text(c['patient_id']?.toString() ?? 'Unknown ID',

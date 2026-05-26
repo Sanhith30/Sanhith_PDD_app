@@ -57,6 +57,11 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+# --- STATIC FILES FOR MULTI-DEVICE IMAGE SYNC ---
+from fastapi.staticfiles import StaticFiles
+os.makedirs(os.path.join(os.path.dirname(__file__), "static", "uploads"), exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # --- 2. GMAIL CONFIGURATION ---
 # IMPORTANT: Generate an "App Password" in your Google Account settings
 # to use your Gmail address for sending automated emails.
@@ -376,12 +381,15 @@ async def predict_full_risk(
     """
     Combined Clinical + Visual AI Prediction
     """
-    # 1. Save uploaded image temporarily
-    temp_dir = "temp_uploads"
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)
+    # 1. Save uploaded image permanently in static/uploads
+    static_uploads_dir = os.path.join("static", "uploads")
+    if not os.path.exists(static_uploads_dir):
+        os.makedirs(static_uploads_dir, exist_ok=True)
     
-    file_path = os.path.join(temp_dir, f"case_{case_id}_{image.filename}")
+    timestamp = int(time.time())
+    original_name = os.path.basename(image.filename)
+    file_name = f"case_{case_id}_{timestamp}_{original_name}"
+    file_path = os.path.join(static_uploads_dir, file_name)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(image.file, buffer)
 
@@ -424,15 +432,17 @@ async def predict_full_risk(
             "biopsyRecommendation": recommendation,
             "confidence": clinical_conf,
             "riskExplanation": all_explanations,
-            "clinicalSuggestions": clinical_suggestions
+            "clinicalSuggestions": clinical_suggestions,
+            "serverImagePath": f"/static/uploads/{file_name}"
         }
     except Exception as e:
         logger.error(f"PREDICT_FULL: Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        # Cleanup temp file
         if os.path.exists(file_path):
-            os.remove(file_path)
+            try:
+                os.remove(file_path)
+            except Exception as cleanup_err:
+                logger.error(f"Failed to remove file after error: {cleanup_err}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # =========================================================
 # DATABASE & AUTHENTICATION ROUTES

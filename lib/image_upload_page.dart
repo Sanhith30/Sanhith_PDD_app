@@ -162,9 +162,13 @@ class _ImageUploadPageState extends State<ImageUploadPage>
 
       // 4. Save result to backend API
       setState(() => _step = 'Saving results…');
+      final imagePathToSave = (result.serverImagePath != null && result.serverImagePath!.isNotEmpty)
+          ? result.serverImagePath!
+          : dest;
+
       await LocalDb.instance.completeCase(
         caseId:              caseId,
-        imagePath:           dest,
+        imagePath:           imagePathToSave,
         riskScore:           result.score,
         clinicalScore:       result.clinicalScore,
         visualScore:         result.visualScore,

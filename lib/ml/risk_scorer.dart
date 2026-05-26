@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../db/local_db.dart';
 
 class RiskResult {
   final double score;          // Combined score (0-100)
@@ -11,6 +12,7 @@ class RiskResult {
   final String confidence;
   final List<String> explanation;
   final List<String> suggestions;
+  final String? serverImagePath;
 
   const RiskResult({
     required this.score,
@@ -21,6 +23,7 @@ class RiskResult {
     required this.confidence,
     required this.explanation,
     required this.suggestions,
+    this.serverImagePath,
   });
 
   factory RiskResult.fromJson(Map<String, dynamic> json) {
@@ -39,14 +42,14 @@ class RiskResult {
 
 class RiskScorer {
   // 🏠 LOCAL MODE (College Submission Ready)
-  static const String apiUrl = 'http://10.19.181.87:5000/predict';
+  static String get apiUrl => '${LocalDb.baseUrl}/predict';
 
   static Future<RiskResult> predictFull({
     required int caseId,
     required Map<String, dynamic> clinicalData,
     required File imageFile,
   }) async {
-    final uri = Uri.parse('http://10.19.181.87:5000/predict_full');
+    final uri = Uri.parse('${LocalDb.baseUrl}/predict_full');
     final request = http.MultipartRequest('POST', uri);
 
     request.headers.addAll({
@@ -72,6 +75,7 @@ class RiskScorer {
           confidence: data['confidence']?.toString() ?? '',
           explanation: List<String>.from(data['riskExplanation'] ?? []),
           suggestions: List<String>.from(data['clinicalSuggestions'] ?? []),
+          serverImagePath: data['serverImagePath']?.toString(),
         );
       } else {
         throw Exception('Server error: ${response.statusCode}');
