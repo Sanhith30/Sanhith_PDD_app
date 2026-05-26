@@ -54,6 +54,24 @@ Rather than relying on a simple "black-box" visual model, this system employs a 
 
 ---
 
+## Clinical Workflow & User Guide
+
+Saveetha Oral Sentry facilitates a seamless, end-to-end diagnostic workflow designed specifically for hospital dental departments:
+
+1. **Clinician Authentication**: Clinicians register with their name, email, and password. Access token security is enforced using PyJWT.
+2. **Onboarding Visual Tour**: Newly registered clinicians are greeted with an interactive visual tour highlighting the app's features and core layout.
+3. **Patient Search & Intake**: Input a unique Patient ID (e.g., `PT001`). If the patient exists in the central PostgreSQL database, the app automatically pulls and displays their historical records and clinical data. If the patient is new, the clinician registers them with basic demographics (name, age, sex, and profile photo).
+4. **Clinical Examination & History Entry**:
+   * **Step A (Demographics)**: Records smoking habits (status, duration, daily frequency), smokeless tobacco usage, alcohol habits, and general medical conditions (diabetes, chemotherapy, steroids).
+   * **Step B (Lesion History)**: Records duration, onset type, recurrence pattern, healing progress, and pain intensity.
+   * **Step C (Physical Examination)**: Records anatomical lesion site, dimensions (in mm), shape, margins, edge type, induration, and bleeding on touch.
+   * **Step D (Associated Findings)**: Records lymph node palpation (tenderness, mobility), weight loss, fever, or paraesthesia.
+5. **Ulcer Photography**: Using the device's native camera, the clinician takes a clear photo of the oral ulcer.
+6. **Multi-Modal AI Risk Assessment**: Pressing "Process AI Analysis" securely uploads the raw clinical JSON and photograph to the FastAPI backend.
+7. **Diagnostics Breakdown & Report Sharing**: The clinician receives an instant combined risk rating (Low, Intermediate, High) with recommendations and confidence intervals. They can generate and print a formal clinical PDF referral report with signature blocks for department head sign-off.
+
+---
+
 ## System Architecture
 
 The application is structured on a modern, decoupled client-server architecture built for enterprise stability and low latency:
@@ -91,6 +109,65 @@ A high-performance asynchronous web API that manages session state, JWT authenti
 
 ### 3. Database Layer (PostgreSQL)
 A relational database storing clinician accounts, patient information profiles, and historical clinical cases. It automatically builds schema structures on backend startup via SQLAlchemy ORM.
+
+---
+
+## Database Schema & Relations
+
+The PostgreSQL database contains tables managed dynamically via SQLAlchemy ORM on backend server startup. The tables are structured as follows:
+
+```mermaid
+erDiagram
+    CLINICIANS {
+        integer id PK
+        string name
+        string email UK
+        string pass_hash
+        string photo_path
+    }
+    PATIENTS {
+        string patient_id PK
+        string name
+        integer age
+        string sex
+        string photo_path
+        text clinical_json
+        string doctor_id
+        bigint last_updated
+    }
+    CASES {
+        integer id PK
+        string patient_id
+        string patient_name
+        string doctor_id
+        bigint created_at
+        string image_path
+        text clinical_json
+        float risk_score
+        float clinical_score
+        float visual_score
+        string risk_category
+        string biopsy_recommendation
+        string confidence
+        text risk_explanation_json
+        text suggestions_json
+        string status
+    }
+    APP_SETTINGS {
+        string key PK
+        string value
+    }
+    
+    CLINICIANS ||--o{ PATIENTS : "registers"
+    CLINICIANS ||--o{ CASES : "assesses"
+    PATIENTS ||--o{ CASES : "has"
+```
+
+### Database Tables Breakdown
+* **`clinicians` Table**: Stores the credential records of registered dental professionals. Hashed credentials (`pass_hash` using bcrypt SHA-256) are used for authentication.
+* **`patients` Table**: Houses persistent profiles of clinical patients. `clinical_json` stores structured demographics and history states that auto-populate on lookup.
+* **`cases` Table**: Captures individual diagnostic records. Each case stores the final fused AI scores, biopsy guidelines, confidence markers, risk explanation bullets (`risk_explanation_json`), and differential diagnosis suggestions (`suggestions_json`).
+* **`app_settings` Table**: Stores internal application configurations and global metadata variables.
 
 ---
 
