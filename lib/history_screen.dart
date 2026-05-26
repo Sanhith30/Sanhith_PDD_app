@@ -6,7 +6,7 @@ import 'db/session.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  HISTORY SCREEN  —  "Surgical Luxury"
-//  Reads from local SQLite — no Firestore
+//  Reads from PostgreSQL backend API
 // ─────────────────────────────────────────────────────────────────────────────
 
 class HistoryScreen extends StatefulWidget {

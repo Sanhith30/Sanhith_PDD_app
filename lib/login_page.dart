@@ -4,7 +4,7 @@ import 'db/session.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  LOGIN PAGE  —  "Surgical Luxury"
-//  Auth: Local SQLite — no Firebase, no Google/Apple
+//  Auth: PostgreSQL backend API
 // ─────────────────────────────────────────────────────────────────────────────
 
 class LoginPage extends StatefulWidget {

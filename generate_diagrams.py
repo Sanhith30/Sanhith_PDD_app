@@ -34,13 +34,12 @@ diagrams = {
     "system_diagram.png": """graph TD
     subgraph Frontend [Mobile Client - Flutter]
         UI[Surgical Luxury UI]
-        LocalDB[(SQLite Local Cache)]
     end
     
     subgraph Backend [FastAPI Server]
         API[REST Endpoints]
         Auth[PyJWT Auth]
-        DB[(PostgreSQL / SQLite)]
+        DB[(PostgreSQL Database)]
     end
     
     subgraph AIEngine [Hybrid AI Engine]
@@ -50,7 +49,6 @@ diagrams = {
     end
     
     UI <-->|HTTP/REST| API
-    UI <-->|Offline Storage| LocalDB
     API <--> Auth
     API <--> DB
     API --> AIEngine

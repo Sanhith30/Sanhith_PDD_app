@@ -299,7 +299,7 @@ class _NewCasePageState extends State<NewCasePage> {
         },
       };
 
-      // 1. Save/Update Patient in SQLite
+      // 1. Save/Update Patient via backend API
       await LocalDb.instance.savePatient(
         patientId:    _idController.text.trim(),
         name:         _nameController.text.trim(),
@@ -309,7 +309,7 @@ class _NewCasePageState extends State<NewCasePage> {
         clinicalData: clinicalData,
       );
 
-      // 2. Insert Case in SQLite
+      // 2. Insert Case via backend API
       final int caseId = await LocalDb.instance.insertCase(
         patientId:    _idController.text.trim(),
         patientName:  _nameController.text.trim(),

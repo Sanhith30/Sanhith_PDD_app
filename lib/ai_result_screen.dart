@@ -6,7 +6,7 @@ import 'db/local_db.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  AI RESULT SCREEN  —  "Surgical Luxury"
-//  Reads from local SQLite — no Firestore
+//  Reads from PostgreSQL backend API
 // ─────────────────────────────────────────────────────────────────────────────
 
 class AiResultScreen extends StatelessWidget {

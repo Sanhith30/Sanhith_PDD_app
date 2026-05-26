@@ -88,7 +88,7 @@ class _ImageUploadPageState extends State<ImageUploadPage>
       final dest = p.join(dir.path, 'ulcer_$caseId.jpg');
       await _selectedImage!.copy(dest);
 
-      // 2. Load clinical data from SQLite
+      // 2. Load clinical data from backend API
       setState(() => _step = 'Loading clinical data…');
       final caseData = await LocalDb.instance.getCase(caseId);
       if (caseData == null) {
@@ -160,7 +160,7 @@ class _ImageUploadPageState extends State<ImageUploadPage>
         imageFile: _selectedImage!,
       );
 
-      // 4. Save result to SQLite
+      // 4. Save result to backend API
       setState(() => _step = 'Saving results…');
       await LocalDb.instance.completeCase(
         caseId:              caseId,

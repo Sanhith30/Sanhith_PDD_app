@@ -20,7 +20,6 @@ android {
 
     defaultConfig {
         applicationId = "com.saveetha.oralulcerai"
-        // sqflite requires minSdk 21+
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -39,7 +38,6 @@ flutter {
 }
 
 dependencies {
-    // No external services — fully offline app
-    // sqflite, path_provider, crypto, image_picker are all Dart plugins
+    // path_provider, crypto, image_picker are all Dart plugins
     // with no additional Android-level dependencies needed here
 }

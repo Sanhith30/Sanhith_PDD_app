@@ -9,7 +9,6 @@
   <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
   <img src="https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" alt="TensorFlow">
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
-  <img src="https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
   <img src="https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white" alt="OpenCV">
   <img src="https://img.shields.io/badge/IBM_SPSS-00599C?style=for-the-badge&logo=ibm&logoColor=white" alt="IBM SPSS">
 </p>
@@ -37,7 +36,7 @@ Rather than relying on a simple "black-box" visual model, this system employs a 
 
 * **Clinician Onboarding and Security**: Secure token-based session management (PyJWT) with password reset capabilities utilizing an OTP system sent via Gmail SMTP.
 * **Premium "Surgical Luxury" UI**: Built with a dark maroon and gold aesthetic specifically designed for clinical and hospital environments.
-* **Patient Case Management**: Complete profile management with local caching via SQLite (sqflite), allowing doctors to review patient history and visits offline.
+* **Patient Case Management**: Complete profile management with secure login sessions, allowing doctors to review patient history and visit logs.
 * **Explainable Hybrid AI**: Risk scores calculated dynamically by fusing visual predictions (Deep Learning) and patient diagnostic variables (Machine Learning) using red-flag rules.
 * **Computer Vision Processing**: OpenCV heuristics run locally to isolate and check for lesion color intensity (Erythema), margins, and borders.
 * **Visual Analytics**: Interactive fl_charts detailing patient risk distributions over time.
@@ -63,13 +62,12 @@ The application is structured on a modern, decoupled client-server architecture 
 graph TD
     subgraph Frontend [Mobile Client - Flutter]
         UI[Surgical Luxury UI]
-        LocalDB[(SQLite Local Cache)]
     end
     
     subgraph Backend [FastAPI Server]
         API[REST Endpoints]
         Auth[PyJWT Auth]
-        DB[(PostgreSQL / SQLite)]
+        DB[(PostgreSQL Database)]
     end
     
     subgraph AIEngine [Hybrid AI Engine]
@@ -79,7 +77,6 @@ graph TD
     end
     
     UI <-->|HTTP/REST| API
-    UI <-->|Offline Storage| LocalDB
     API <--> Auth
     API <--> DB
     API --> AIEngine
@@ -87,7 +84,7 @@ graph TD
 ```
 
 ### 1. Mobile Frontend (Flutter and Dart)
-A native-performance client implementing stateful flows, offline-first SQLite caching, native camera image capture, PDF rendering, and interactive graphing engines.
+A native-performance client implementing stateful flows, secure API integrations, native camera image capture, PDF rendering, and interactive graphing engines.
 
 ### 2. Backend API (Python and FastAPI)
 A high-performance asynchronous web API that manages session state, JWT authentications, PostgreSQL transaction sessions, database updates, and delegates concurrent CPU/GPU workloads to the AI engine.
@@ -189,7 +186,7 @@ To validate the application's real-world usability and efficiency, we conducted 
 
 * **Flutter SDK**: v3.16.x or newer
 * **Python**: v3.10.x or newer
-* **PostgreSQL**: v14.x or newer (optional, default falls back to SQLite)
+* **PostgreSQL**: v14.x or newer
 * **Dart**: v3.x
 
 ### Backend Setup (FastAPI)

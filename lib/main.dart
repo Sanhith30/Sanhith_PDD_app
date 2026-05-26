@@ -18,9 +18,8 @@ import 'settings_page.dart';
 import 'change_password_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // No longer using sqflite on Windows/Linux
 
-  // Initialise local SQLite database (creates tables + seeds default account)
+  // Initialise local storage settings
   await LocalDb.instance.db;
 
   // Check first-launch flag for onboarding

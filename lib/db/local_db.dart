@@ -4,8 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'session.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  API SERVICE  —  Now connects to PostgreSQL FastAPI Backend
-//  Replaces local SQLite database logic
+//  API SERVICE  —  Connects to PostgreSQL FastAPI Backend
 // ─────────────────────────────────────────────────────────────────────────────
 
 class LocalDb {

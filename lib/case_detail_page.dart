@@ -11,7 +11,7 @@ import 'db/local_db.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 //  CASE DETAIL PAGE  —  Screen 14
 //  Full clinical breakdown of a single assessed case
-//  Reads from local SQLite — no network calls
+//  Reads from PostgreSQL backend API
 // ─────────────────────────────────────────────────────────────────────────────
 
 class CaseDetailPage extends StatelessWidget {

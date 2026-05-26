@@ -11,8 +11,6 @@ dependencies:
     sdk: flutter
 
   # ── Local Database ───────────────────────────────────────────────────────────
-  sqflite:          ^2.3.3
-  sqflite_common_ffi: ^2.3.3
   path_provider:    ^2.1.4
 
   # ── Security ─────────────────────────────────────────────────────────────────
