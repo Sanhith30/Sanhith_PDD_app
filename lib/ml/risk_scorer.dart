@@ -61,7 +61,7 @@ class RiskScorer {
     request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
 
     try {
-      final streamedResponse = await request.send().timeout(const Duration(seconds: 20));
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 120));
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {

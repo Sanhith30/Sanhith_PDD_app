@@ -73,11 +73,16 @@ class AiResultScreen extends StatelessWidget {
             riskBg    = const Color(0xFFFFF8E1);
             riskIcon  = Icons.info_rounded;
             riskLabel = 'INTERMEDIATE';
-          } else {
+          } else if (category.toLowerCase().contains('low')) {
             riskColor = const Color(0xFF2E7D32);
             riskBg    = const Color(0xFFE8F5E9);
             riskIcon  = Icons.check_circle_rounded;
             riskLabel = 'LOW RISK';
+          } else {
+            riskColor = _muted;
+            riskBg    = const Color(0xFFF7F3F0);
+            riskIcon  = Icons.hourglass_empty_rounded;
+            riskLabel = category.toUpperCase();
           }
 
           return Column(children: [
