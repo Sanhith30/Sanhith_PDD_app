@@ -13,6 +13,14 @@ from fastapi import Depends, UploadFile, File, Form
 import logging
 import os
 
+import sys
+# Force stdout/stderr to be line-buffered so console outputs flush immediately
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+except Exception:
+    pass
+
 # Ensure temp directory exists
 os.makedirs("temp_uploads", exist_ok=True)
 import shutil
@@ -56,6 +64,26 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all HTTP methods (POST, GET, etc.)
     allow_headers=["*"],  # Allows all headers
 )
+
+# --- REQUEST LOGGING MIDDLEWARE FOR REAL-TIME CONSOLE LOGS ---
+@app.middleware("http")
+async def log_requests(request, call_next):
+    import time
+    start_time = time.time()
+    path = request.url.path
+    method = request.method
+    client_host = request.client.host if request.client else "unknown"
+    print(f"--> RECEIVED REQUEST: {method} {path} from {client_host}", flush=True)
+    
+    try:
+        response = await call_next(request)
+        process_time = (time.time() - start_time) * 1000
+        print(f"<-- RESPONDED: {method} {path} - Status {response.status_code} in {process_time:.2f}ms", flush=True)
+        return response
+    except Exception as e:
+        process_time = (time.time() - start_time) * 1000
+        print(f"<-- ERROR: {method} {path} failed: {e} in {process_time:.2f}ms", flush=True)
+        raise
 
 # --- STATIC FILES FOR MULTI-DEVICE IMAGE SYNC ---
 from fastapi.staticfiles import StaticFiles
