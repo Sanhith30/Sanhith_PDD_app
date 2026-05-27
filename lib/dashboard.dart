@@ -171,11 +171,19 @@ class _DashboardPageState extends State<DashboardPage> {
                                 onPressed: () {},
                               ),
                               GestureDetector(
-                                onTap: () => Navigator.pushNamed(context, '/profile'),
-                                child: CircleAvatar(
-                                  backgroundColor: _accent.withOpacity(0.2),
-                                  radius: 20,
-                                  child: const Icon(Icons.person_rounded, color: _accent, size: 22),
+                                onTap: () => Navigator.pushNamed(context, '/profile').then((_) {
+                                  if (mounted) setState(() {});
+                                }),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: _accent.withOpacity(0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: ClipOval(
+                                    child: _buildDoctorAvatar(),
+                                  ),
                                 ),
                               ),
                             ],
@@ -365,14 +373,16 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              backgroundColor: _bg,
-              backgroundImage: c['patient_photo'] != null && c['patient_photo']!.isNotEmpty && !ui.window.physicalSize.isEmpty
-                ? FileImage(File(c['patient_photo']))
-                : null,
-              child: c['patient_photo'] == null || c['patient_photo']!.isEmpty
-                ? Icon(Icons.person_outline, color: _muted)
-                : null,
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _bg,
+                shape: BoxShape.circle,
+              ),
+              child: ClipOval(
+                child: _buildPatientAvatar(c['patient_photo']),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -420,5 +430,68 @@ class _DashboardPageState extends State<DashboardPage> {
         letterSpacing: 3.5,
       ),
     );
+  }
+
+  Widget _buildPatientAvatar(String? photo) {
+    if (photo == null || photo.isEmpty) {
+      return const Icon(Icons.person_outline, color: _muted);
+    }
+    if (photo.startsWith('/static') || photo.startsWith('http')) {
+      final String fullUrl = photo.startsWith('http')
+          ? photo
+          : '${LocalDb.baseUrl}$photo';
+      return Image.network(
+        fullUrl,
+        headers: const {'Bypass-Tunnel-Reminder': 'true'},
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.person_outline, color: _muted),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(
+            child: SizedBox(
+              width: 14, height: 14,
+              child: CircularProgressIndicator(strokeWidth: 1.5, color: _primary),
+            ),
+          );
+        },
+      );
+    } else if (!kIsWeb && File(photo).existsSync()) {
+      return Image.file(File(photo), fit: BoxFit.cover);
+    } else {
+      return const Icon(Icons.person_outline, color: _muted);
+    }
+  }
+
+  Widget _buildDoctorAvatar() {
+    final path = Session.instance.photoPath;
+    if (path == null || path.isEmpty) {
+      return const Icon(Icons.person_rounded, color: _accent, size: 22);
+    }
+    if (path.startsWith('/static') || path.startsWith('http')) {
+      final String fullUrl = path.startsWith('http')
+          ? path
+          : '${LocalDb.baseUrl}$path';
+      return Image.network(
+        fullUrl,
+        headers: const {'Bypass-Tunnel-Reminder': 'true'},
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.person_rounded, color: _accent, size: 22),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(
+            child: SizedBox(
+              width: 14, height: 14,
+              child: CircularProgressIndicator(strokeWidth: 1.5, color: _accent),
+            ),
+          );
+        },
+      );
+    } else if (!kIsWeb && File(path).existsSync()) {
+      return Image.file(File(path), fit: BoxFit.cover);
+    } else {
+      return const Icon(Icons.person_rounded, color: _accent, size: 22);
+    }
   }
 }

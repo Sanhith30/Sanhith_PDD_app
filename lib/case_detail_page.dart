@@ -271,6 +271,35 @@ class CaseDetailPage extends StatelessWidget {
 
   // ── Patient strip ─────────────────────────────────────────────────────────
   Widget _patientStrip(String id, String name, String date, String status, String photo) {
+    Widget photoWidget;
+    if (photo.isEmpty) {
+      photoWidget = Icon(Icons.person_rounded, color: _maroon.withOpacity(0.7), size: 20);
+    } else if (photo.startsWith('/static') || photo.startsWith('http')) {
+      final String fullUrl = photo.startsWith('http')
+          ? photo
+          : '${LocalDb.baseUrl}$photo';
+      photoWidget = Image.network(
+        fullUrl,
+        headers: const {'Bypass-Tunnel-Reminder': 'true'},
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.person_rounded, color: _maroon.withOpacity(0.7), size: 20),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(
+            child: SizedBox(
+              width: 14, height: 14,
+              child: CircularProgressIndicator(strokeWidth: 1.5, color: _maroon),
+            ),
+          );
+        },
+      );
+    } else if (!kIsWeb && File(photo).existsSync()) {
+      photoWidget = Image.file(File(photo), fit: BoxFit.cover);
+    } else {
+      photoWidget = Icon(Icons.person_rounded, color: _maroon.withOpacity(0.7), size: 20);
+    }
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: _surface,
@@ -281,14 +310,11 @@ class CaseDetailPage extends StatelessWidget {
       child: Row(children: [
         Container(width: 42, height: 42,
             decoration: BoxDecoration(color: _maroon.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
-                image: photo.isNotEmpty && !kIsWeb && File(photo).existsSync()
-                  ? DecorationImage(image: FileImage(File(photo)), fit: BoxFit.cover)
-                  : null),
-            child: photo.isEmpty || kIsWeb || !File(photo).existsSync()
-              ? Icon(Icons.person_rounded,
-                  color: _maroon.withOpacity(0.7), size: 20)
-              : null),
+                borderRadius: BorderRadius.circular(12)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: photoWidget,
+            )),
         const SizedBox(width: 12),
         Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start, children: [

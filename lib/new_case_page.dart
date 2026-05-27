@@ -184,6 +184,70 @@ class _NewCasePageState extends State<NewCasePage> {
     }
   }
 
+  Widget _buildPatientImage() {
+    if (profilePhotoUrl.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.camera_alt_outlined,
+              color: _muted.withOpacity(0.6), size: 22),
+          const SizedBox(height: 4),
+          Text("Photo",
+              style: TextStyle(
+                color: _muted.withOpacity(0.6),
+                fontSize: 9.5, fontWeight: FontWeight.w500,
+              )),
+        ],
+      );
+    }
+    
+    if (profilePhotoUrl.startsWith('/static') || profilePhotoUrl.startsWith('http')) {
+      final String fullUrl = profilePhotoUrl.startsWith('http')
+          ? profilePhotoUrl
+          : '${LocalDb.baseUrl}$profilePhotoUrl';
+      return Image.network(
+        fullUrl,
+        headers: const {'Bypass-Tunnel-Reminder': 'true'},
+        fit: BoxFit.cover,
+        width: 68,
+        height: 68,
+        errorBuilder: (context, error, stackTrace) => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.broken_image, color: _muted.withOpacity(0.6), size: 22),
+            const SizedBox(height: 4),
+            Text("Error", style: TextStyle(color: _muted.withOpacity(0.6), fontSize: 9.5)),
+          ],
+        ),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(child: CircularProgressIndicator(color: _maroon, strokeWidth: 1.5));
+        },
+      );
+    } else if (!kIsWeb && File(profilePhotoUrl).existsSync()) {
+      return Image.file(
+        File(profilePhotoUrl),
+        fit: BoxFit.cover,
+        width: 68,
+        height: 68,
+      );
+    } else {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.camera_alt_outlined,
+              color: _muted.withOpacity(0.6), size: 22),
+          const SizedBox(height: 4),
+          Text("Photo",
+              style: TextStyle(
+                color: _muted.withOpacity(0.6),
+                fontSize: 9.5, fontWeight: FontWeight.w500,
+              )),
+        ],
+      );
+    }
+  }
+
   Future<void> _pickProfilePhoto() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
@@ -200,7 +264,20 @@ class _NewCasePageState extends State<NewCasePage> {
       setState(() {
         profilePhotoUrl = dest;
       });
-      _showSnackBar("Profile photo captured and saved", isSuccess: true);
+      _showSnackBar("Profile photo captured locally", isSuccess: true);
+
+      final String pid = _idController.text.trim().isEmpty ? "temp" : _idController.text.trim();
+      final String? serverPath = await LocalDb.instance.uploadPatientPhoto(
+        patientId: pid,
+        localPath: pickedFile.path,
+      );
+
+      if (serverPath != null && serverPath.isNotEmpty) {
+        setState(() {
+          profilePhotoUrl = serverPath;
+        });
+        _showSnackBar("Profile photo uploaded to server", isSuccess: true);
+      }
     }
   }
 
@@ -543,25 +620,11 @@ class _NewCasePageState extends State<NewCasePage> {
                     color: _maroon.withOpacity(0.06),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: _border, width: 1.2),
-                    image: profilePhotoUrl.isNotEmpty && !kIsWeb && File(profilePhotoUrl).existsSync()
-                      ? DecorationImage(image: FileImage(File(profilePhotoUrl)), fit: BoxFit.cover)
-                      : null,
                   ),
-                  child: profilePhotoUrl.isEmpty || kIsWeb || !File(profilePhotoUrl).existsSync()
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.camera_alt_outlined,
-                              color: _muted.withOpacity(0.6), size: 22),
-                          const SizedBox(height: 4),
-                          Text("Photo",
-                              style: TextStyle(
-                                color: _muted.withOpacity(0.6),
-                                fontSize: 9.5, fontWeight: FontWeight.w500,
-                              )),
-                        ],
-                      )
-                    : null,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: _buildPatientImage(),
+                  ),
                 ),
               ),
               const SizedBox(width: 14),

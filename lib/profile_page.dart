@@ -136,6 +136,63 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
+  Widget _buildProfileImage() {
+    final path = Session.instance.photoPath;
+    if (path == null || path.isEmpty) {
+      return Center(
+        child: Text(Session.instance.initial,
+            style: const TextStyle(
+                color: _maroon,
+                fontSize: 36,
+                fontWeight: FontWeight.w800)),
+      );
+    }
+    
+    if (path.startsWith('/static') || path.startsWith('http')) {
+      final String fullUrl = path.startsWith('http')
+          ? path
+          : '${LocalDb.baseUrl}$path';
+      return Image.network(
+        fullUrl,
+        headers: const {'Bypass-Tunnel-Reminder': 'true'},
+        fit: BoxFit.cover,
+        width: 90,
+        height: 90,
+        errorBuilder: (context, error, stackTrace) => Center(
+          child: Text(Session.instance.initial,
+              style: const TextStyle(
+                  color: _maroon,
+                  fontSize: 36,
+                  fontWeight: FontWeight.w800)),
+        ),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(
+            child: CircularProgressIndicator(
+              color: _maroon,
+              strokeWidth: 2,
+            ),
+          );
+        },
+      );
+    } else if (!kIsWeb && File(path).existsSync()) {
+      return Image.file(
+        File(path),
+        fit: BoxFit.cover,
+        width: 90,
+        height: 90,
+      );
+    } else {
+      return Center(
+        child: Text(Session.instance.initial,
+            style: const TextStyle(
+                color: _maroon,
+                fontSize: 36,
+                fontWeight: FontWeight.w800)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,26 +225,10 @@ class _ProfilePageState extends State<ProfilePage>
                         border: Border.all(color: _gold, width: 2.5),
                         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3),
                             blurRadius: 20, offset: const Offset(0, 8))],
-                        image: Session.instance.photoPath != null &&
-                                Session.instance.photoPath!.isNotEmpty &&
-                                !kIsWeb &&
-                                File(Session.instance.photoPath!).existsSync()
-                            ? DecorationImage(
-                                image: FileImage(File(Session.instance.photoPath!)),
-                                fit: BoxFit.cover)
-                            : null,
                       ),
-                      child: Session.instance.photoPath == null ||
-                              Session.instance.photoPath!.isEmpty ||
-                              kIsWeb ||
-                              !File(Session.instance.photoPath!).existsSync()
-                          ? Center(
-                              child: Text(Session.instance.initial,
-                                  style: const TextStyle(
-                                      color: _maroon,
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w800)))
-                          : null,
+                      child: ClipOval(
+                        child: _buildProfileImage(),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 14),

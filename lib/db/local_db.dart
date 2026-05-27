@@ -127,19 +127,61 @@ class LocalDb {
     }
   }
 
-  Future<bool> updateProfilePhoto(String photoPath) async {
+  Future<bool> updateProfilePhoto(String localPhotoPath) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/clinicians/profile_photo'),
-        headers: _headers,
-        body: jsonEncode({'photo_path': photoPath}),
-      );
-      if (res.statusCode == 200) {
-        Session.instance.photoPath = photoPath;
-        return true;
+      final uri = Uri.parse('$baseUrl/clinicians/profile_photo');
+      final request = http.MultipartRequest('POST', uri);
+      
+      final token = Session.instance.token;
+      request.headers.addAll({
+        'Bypass-Tunnel-Reminder': 'true',
+      });
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      request.files.add(await http.MultipartFile.fromPath('photo', localPhotoPath));
+      
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final String serverPath = data['photo_path']?.toString() ?? '';
+        if (serverPath.isNotEmpty) {
+          Session.instance.photoPath = serverPath;
+          return true;
+        }
       }
     } catch (_) {}
     return false;
+  }
+
+  Future<String?> uploadPatientPhoto({required String patientId, required String localPath}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/patients/profile_photo');
+      final request = http.MultipartRequest('POST', uri);
+      
+      final token = Session.instance.token;
+      request.headers.addAll({
+        'Bypass-Tunnel-Reminder': 'true',
+      });
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      request.fields['patient_id'] = patientId;
+      request.files.add(await http.MultipartFile.fromPath('photo', localPath));
+      
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['photo_path']?.toString();
+      }
+    } catch (_) {}
+    return null;
   }
 
   Map<String, String> get _headers {

@@ -611,17 +611,56 @@ def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
     db.commit()
     return {"success": True}
 
-class ProfilePhotoUpdate(BaseModel):
-    photo_path: str
-
 @app.post("/clinicians/profile_photo")
-def update_profile_photo(update: ProfilePhotoUpdate, db: Session = Depends(get_db), current_user: models.Clinician = Depends(get_current_clinician)):
+async def update_profile_photo(
+    photo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.Clinician = Depends(get_current_clinician)
+):
     db_user = db.query(models.Clinician).filter(models.Clinician.id == current_user.id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="Clinician not found")
-    db_user.photo_path = update.photo_path
+    
+    # Save photo permanently in static/profile_photos
+    profile_photos_dir = os.path.join("static", "profile_photos")
+    if not os.path.exists(profile_photos_dir):
+        os.makedirs(profile_photos_dir, exist_ok=True)
+        
+    timestamp = int(time.time())
+    original_name = os.path.basename(photo.filename)
+    file_name = f"clinician_{current_user.id}_{timestamp}_{original_name}"
+    file_path = os.path.join(profile_photos_dir, file_name)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(photo.file, buffer)
+        
+    server_path = f"/static/profile_photos/{file_name}"
+    db_user.photo_path = server_path
     db.commit()
-    return {"success": True}
+    return {"success": True, "photo_path": server_path}
+
+@app.post("/patients/profile_photo")
+async def upload_patient_photo(
+    patient_id: str = Form(...),
+    photo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.Clinician = Depends(get_current_clinician)
+):
+    # Save photo permanently in static/patient_photos/
+    patient_photos_dir = os.path.join("static", "patient_photos")
+    if not os.path.exists(patient_photos_dir):
+        os.makedirs(patient_photos_dir, exist_ok=True)
+        
+    timestamp = int(time.time())
+    original_name = os.path.basename(photo.filename)
+    file_name = f"patient_{patient_id}_{timestamp}_{original_name}"
+    file_path = os.path.join(patient_photos_dir, file_name)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(photo.file, buffer)
+        
+    server_path = f"/static/patient_photos/{file_name}"
+    return {"success": True, "photo_path": server_path}
 
 class PatientCreate(BaseModel):
     patient_id: str
