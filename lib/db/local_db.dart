@@ -13,7 +13,7 @@ class LocalDb {
   
   // 🏠 LOCAL MODE (College Submission Ready)
   // Use your computer's Local IP for physical devices:
-  static const String baseUrl = 'http://10.232.125.87:5000'; 
+  static const String baseUrl = 'http://10.37.145.87:5000'; 
   // Use 'http://10.0.2.2:5000' if testing on the Android Emulator
 
   // Dummy db accessor to prevent breaking main.dart
