@@ -295,6 +295,7 @@ class _SettingsPageState extends State<SettingsPage>
         name: 'Saveetha_Clinical_Audit_${DateTime.now().month}_${DateTime.now().year}.pdf',
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Failed to generate PDF audit: $e'),
         backgroundColor: Colors.red,
@@ -342,7 +343,9 @@ class _SettingsPageState extends State<SettingsPage>
               final newUrl = controller.text.trim();
               if (newUrl.isNotEmpty) {
                 await LocalDb.setBaseUrl(newUrl);
+                if (!ctx.mounted) return;
                 Navigator.pop(ctx);
+                if (!mounted) return;
                 setState(() {});
                 _testPing();
               }
