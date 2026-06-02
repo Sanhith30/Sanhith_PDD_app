@@ -98558,7 +98558,7 @@ s=B.b([B.eI(A.aA,B.b([p,B.V(o+"%",r,r,r,B.aD(r,r,A.aQ,r,r,r,r,r,r,r,r,b?15:12,r,
 return B.au(s,A.O,A.K,A.G)},
 acC(a){var s,r,q,p,o=null
 if(a.length===0)s=B.cY(B.au(B.b([B.bN(A.kv,B.z(102,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),o,40),A.bp,B.V("No image captured",o,o,o,B.aD(o,o,B.z(153,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),o,o,o,o,o,o,o,o,12,o,o,o,o,o,!0,o,o,o,o,o,o,o,o),o,o)],t.p),A.O,A.aK,A.G),o,o)
-else if(A.n.aY(a,"/static")||A.n.aY(a,"http")){r=A.n.aY(a,"http")?a:"http://10.232.125.87:5000"+a
+else if(A.n.aY(a,"/static")||A.n.aY(a,"http")){r=A.n.aY(a,"http")?a:"http://10.37.145.87:5000"+a
 s=B.qZ(r,new B.a6z(),A.dK,A.ek,o,new B.a6A(),o)}else s=B.cY(B.au(B.b([B.bN(A.kv,B.z(102,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),o,40),A.bp,B.V("Image file not found",o,o,o,B.aD(o,o,B.z(153,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),o,o,o,o,o,o,o,o,12,o,o,o,o,o,!0,o,o,o,o,o,o,o,o),o,o)],t.p),A.O,A.aK,A.G),o,o)
 q=B.ae(18)
 p=B.bo(A.aj,1)
@@ -98934,7 +98934,7 @@ akU(a,b,c,d,e){var s=null,r=B.ir(s,s,A.eU,s,s,new B.a88(a),s,s,s),q=t.p,p=B.bY(B
 return B.a6(s,B.hg(!1,new B.aT(A.kc,B.b8(B.b([r,A.j6,p,B.a6(s,B.V(d,s,s,s,B.aD(s,s,B.z(A.o.a3(229.5),A.U.l()>>>16&255,A.U.l()>>>8&255,A.U.l()&255),s,s,s,s,s,s,s,s,10,s,s,A.aJ,s,s,!0,s,s,s,s,s,s,s,s),s,s),A.F,s,s,new B.a8(o,s,m,n,s,s,A.T),s,s,s,s,A.oH,s,s,s),A.bJ,B.ir(s,s,A.Xa,s,s,new B.a89(this,a,b),s,s,"Generate Clinical Report")],q),A.O,A.K,A.G,0),s),A.aL,!0),A.F,s,s,A.jC,s,s,s,s,s,s,s,s)},
 anM(a,b,c,d,e){var s,r,q,p,o,n,m,l,k,j,i,h=null
 if(e.length===0)s=B.bN(A.eT,B.z(A.o.a3(178.5),A.E.l()>>>16&255,A.E.l()>>>8&255,A.E.l()&255),h,20)
-else if(A.n.aY(e,"/static")||A.n.aY(e,"http")){r=A.n.aY(e,"http")?e:"http://10.232.125.87:5000"+e
+else if(A.n.aY(e,"/static")||A.n.aY(e,"http")){r=A.n.aY(e,"http")?e:"http://10.37.145.87:5000"+e
 s=B.qZ(r,new B.a8c(),A.dK,A.ek,h,new B.a8d(),h)}else s=B.bN(A.eT,B.z(A.o.a3(178.5),A.E.l()>>>16&255,A.E.l()>>>8&255,A.E.l()&255),h,20)
 q=B.ae(16)
 p=B.bo(A.aj,1)
@@ -98953,7 +98953,7 @@ i=B.ae(8)
 return B.a6(h,B.b8(B.b([m,A.eo,l,B.a6(h,B.V(d,h,h,h,B.aD(h,h,k?A.aZ:A.eJ,h,h,h,h,h,h,h,h,10,h,h,A.aJ,h,h,!0,h,h,h,h,h,h,h,h),h,h),A.F,h,h,new B.a8(j,h,h,i,h,h,A.T),h,h,h,h,A.fG,h,h,h)],n),A.O,A.K,A.G,0),A.F,h,h,new B.a8(A.v,h,p,q,o,h,A.T),h,h,h,h,A.vH,h,h,h)},
 al1(a){var s,r,q,p,o,n=null
 if(a.length===0)s=B.cY(B.au(B.b([B.bN(A.kv,B.z(102,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),n,36),A.bp,B.V("No image captured",n,n,n,B.aD(n,n,B.z(153,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),n,n,n,n,n,n,n,n,12,n,n,n,n,n,!0,n,n,n,n,n,n,n,n),n,n)],t.p),A.O,A.aK,A.G),n,n)
-else if(A.n.aY(a,"/static")||A.n.aY(a,"http")){r=A.n.aY(a,"http")?a:"http://10.232.125.87:5000"+a
+else if(A.n.aY(a,"/static")||A.n.aY(a,"http")){r=A.n.aY(a,"http")?a:"http://10.37.145.87:5000"+a
 s=B.qZ(r,new B.a8a(),A.dK,A.ek,n,new B.a8b(),n)}else s=B.cY(B.au(B.b([B.bN(A.kv,B.z(102,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),n,36),A.bp,B.V("Image file not found",n,n,n,B.aD(n,n,B.z(153,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),n,n,n,n,n,n,n,n,12,n,n,n,n,n,!0,n,n,n,n,n,n,n,n),n,n)],t.p),A.O,A.aK,A.G),n,n)
 q=this.nI("Lesion Image")
 p=B.ae(16)
@@ -99291,11 +99291,11 @@ n=B.ae(8)
 return B.is(!1,i,!0,B.a6(j,B.b8(B.b([p,A.MI,l,B.a6(j,B.V(h.toUpperCase(),j,j,j,B.aD(j,j,s,j,j,j,j,j,j,j,j,9,j,j,A.c6,j,j,!0,j,1,j,j,j,j,j,j),j,j),A.F,j,j,new B.a8(m,j,j,n,j,j,A.T),j,j,j,j,A.vD,j,j,j)],k),A.O,A.K,A.G,0),A.F,j,j,new B.a8(A.v,j,q,r,j,j,A.T),j,j,j,A.k8,A.cq,j,j,j),j,!0,j,j,j,j,j,j,j,j,j,new B.avz(this,a),j,j,j,j)},
 acL(a){var s
 if(a==null||a.length===0)return A.py
-if(A.n.aY(a,"/static")||A.n.aY(a,"http")){s=A.n.aY(a,"http")?a:"http://10.232.125.87:5000"+a
+if(A.n.aY(a,"/static")||A.n.aY(a,"http")){s=A.n.aY(a,"http")?a:"http://10.37.145.87:5000"+a
 return B.qZ(s,new B.avx(),A.dK,A.ek,null,new B.avy(),null)}else return A.py},
 act(){var s,r=$.eQ().e
 if(r==null||r.length===0)return A.px
-if(A.n.aY(r,"/static")||A.n.aY(r,"http")){s=A.n.aY(r,"http")?r:"http://10.232.125.87:5000"+r
+if(A.n.aY(r,"/static")||A.n.aY(r,"http")){s=A.n.aY(r,"http")?r:"http://10.37.145.87:5000"+r
 return B.qZ(s,new B.avt(),A.dK,A.ek,null,new B.avu(),null)}else return A.px}}
 B.avE.prototype={
 $0(){var s,r,q=this.a
@@ -99416,7 +99416,7 @@ zt(a,b){return this.a6f(a,b)},
 a6f(a,b){var s=0,r=B.L(t.nA),q,p=2,o=[],n,m,l,k,j,i,h,g
 var $async$zt=B.G(function(c,d){if(c===1){o.push(d)
 s=p}for(;;)switch(s){case 0:p=4
-k=B.e5("http://10.232.125.87:5000/auth/login")
+k=B.e5("http://10.37.145.87:5000/auth/login")
 j=t.N
 i=B.a9(["Content-Type","application/json","Bypass-Tunnel-Reminder","true"],j,j)
 s=7
@@ -99447,7 +99447,7 @@ oZ(a,b,c){return this.a6g(a,b,c)},
 a6g(a,b,c){var s=0,r=B.L(t.nA),q,p=2,o=[],n,m,l,k,j,i,h,g,f
 var $async$oZ=B.G(function(d,e){if(d===1){o.push(e)
 s=p}for(;;)switch(s){case 0:p=4
-j=B.e5("http://10.232.125.87:5000/auth/signup")
+j=B.e5("http://10.37.145.87:5000/auth/signup")
 i=t.N
 h=B.a9(["Content-Type","application/json","Bypass-Tunnel-Reminder","true"],i,i)
 s=7
@@ -99486,7 +99486,7 @@ F0(a){return this.aDd(a)},
 aDd(a){var s=0,r=B.L(t.y),q,p=2,o=[],n,m,l,k,j,i
 var $async$F0=B.G(function(b,c){if(b===1){o.push(c)
 s=p}for(;;)switch(s){case 0:p=4
-m=B.e5("http://10.232.125.87:5000/auth/reset_password")
+m=B.e5("http://10.37.145.87:5000/auth/reset_password")
 l=t.N
 k=B.a9(["Content-Type","application/json","Bypass-Tunnel-Reminder","true"],l,l)
 s=7
@@ -99515,7 +99515,7 @@ Cv(a,b,c){return this.auK(a,b,c)},
 auK(a,b,c){var s=0,r=B.L(t.y),q,p=2,o=[],n,m,l,k,j,i
 var $async$Cv=B.G(function(d,e){if(d===1){o.push(e)
 s=p}for(;;)switch(s){case 0:p=4
-m=B.e5("http://10.232.125.87:5000/auth/confirm_password_reset")
+m=B.e5("http://10.37.145.87:5000/auth/confirm_password_reset")
 l=t.N
 k=B.a9(["Content-Type","application/json","Bypass-Tunnel-Reminder","true"],l,l)
 s=7
@@ -99544,7 +99544,7 @@ wL(a,b,c){return this.aud(a,b,c)},
 aud(a,b,c){var s=0,r=B.L(t.y),q,p=2,o=[],n,m,l,k,j,i
 var $async$wL=B.G(function(d,e){if(d===1){o.push(e)
 s=p}for(;;)switch(s){case 0:p=4
-m=B.e5("http://10.232.125.87:5000/auth/change_password")
+m=B.e5("http://10.37.145.87:5000/auth/change_password")
 l=t.N
 k=B.a9(["Content-Type","application/json","Bypass-Tunnel-Reminder","true"],l,l)
 s=7
@@ -99573,7 +99573,7 @@ Fl(a){return this.aE6(a)},
 aE6(a){var s=0,r=B.L(t.y),q,p=2,o=[],n,m,l,k,j,i,h
 var $async$Fl=B.G(function(b,c){if(b===1){o.push(c)
 s=p}for(;;)switch(s){case 0:p=4
-n=B.e5("http://10.232.125.87:5000/clinicians/profile_photo")
+n=B.e5("http://10.37.145.87:5000/clinicians/profile_photo")
 m=B.b0E("POST",n)
 l=$.eQ().d
 k=t.N
@@ -99606,7 +99606,7 @@ a5a(a){var s=0,r=B.L(t.nA),q,p=2,o=[],n=this,m,l,k,j
 var $async$z7=B.G(function(b,c){if(b===1){o.push(c)
 s=p}for(;;)switch(s){case 0:p=4
 s=7
-return B.H(B.aHY(B.e5("http://10.232.125.87:5000/patients/"+a),n.gru()),$async$z7)
+return B.H(B.aHY(B.e5("http://10.37.145.87:5000/patients/"+a),n.gru()),$async$z7)
 case 7:m=c
 if(m.b===200){l=m
 l=t.a.a(A.aN.h_(B.zD(B.zu(l.e)).em(l.w),null))
@@ -99631,7 +99631,7 @@ zb(a,b,c,d,e,f){return this.a5s(a,b,c,d,e,f)},
 a5s(a,b,c,d,e,f){var s=0,r=B.L(t.H),q=1,p=[],o=this,n,m,l,k
 var $async$zb=B.G(function(g,h){if(g===1){p.push(h)
 s=q}for(;;)switch(s){case 0:q=3
-n=B.e5("http://10.232.125.87:5000/patients")
+n=B.e5("http://10.37.145.87:5000/patients")
 m=o.gru()
 s=6
 return B.H(B.zI(n,A.aN.ln(B.a9(["patient_id",d,"name",c,"age",a,"sex",f,"photo_path",e,"clinical_json",A.aN.ln(b,null),"doctor_id",$.eQ().gtw(),"last_updated",Date.now()],t.N,t.K),null),m),$async$zb)
@@ -99651,7 +99651,7 @@ DS(a,b,c,d){return this.azx(a,b,c,d)},
 azx(a,b,c,d){var s=0,r=B.L(t.S),q,p=2,o=[],n=this,m,l,k,j,i,h
 var $async$DS=B.G(function(e,f){if(e===1){o.push(f)
 s=p}for(;;)switch(s){case 0:p=4
-k=B.e5("http://10.232.125.87:5000/cases")
+k=B.e5("http://10.37.145.87:5000/cases")
 j=n.gru()
 s=7
 return B.H(B.zI(k,A.aN.ln(B.a9(["patient_id",c,"patient_name",d,"doctor_id",b,"created_at",Date.now(),"clinical_json",A.aN.ln(a,null)],t.N,t.K),null),j),$async$DS)
@@ -99681,7 +99681,7 @@ a4P(a){var s=0,r=B.L(t.nA),q,p=2,o=[],n=this,m,l,k,j
 var $async$uz=B.G(function(b,c){if(b===1){o.push(c)
 s=p}for(;;)switch(s){case 0:p=4
 s=7
-return B.H(B.aHY(B.e5("http://10.232.125.87:5000/cases/"+a),n.gru()),$async$uz)
+return B.H(B.aHY(B.e5("http://10.37.145.87:5000/cases/"+a),n.gru()),$async$uz)
 case 7:m=c
 if(m.b===200){l=m
 l=t.a.a(A.aN.h_(B.zD(B.zu(l.e)).em(l.w),null))
@@ -99707,7 +99707,7 @@ a4Q(a){var s=0,r=B.L(t.b5),q,p=2,o=[],n=this,m,l,k,j,i
 var $async$oN=B.G(function(b,c){if(b===1){o.push(c)
 s=p}for(;;)switch(s){case 0:p=4
 s=7
-return B.H(B.aHY(B.e5("http://10.232.125.87:5000/cases"),n.gru()),$async$oN)
+return B.H(B.aHY(B.e5("http://10.37.145.87:5000/cases"),n.gru()),$async$oN)
 case 7:m=c
 if(m.b===200){k=m
 l=t.j.a(A.aN.h_(B.zD(B.zu(k.e)).em(k.w),null))
@@ -99734,7 +99734,7 @@ a5b(a){var s=0,r=B.L(t.b5),q,p=2,o=[],n=this,m,l,k,j,i
 var $async$uH=B.G(function(b,c){if(b===1){o.push(c)
 s=p}for(;;)switch(s){case 0:p=4
 s=7
-return B.H(B.aHY(B.e5("http://10.232.125.87:5000/patients/"+a+"/history"),n.gru()),$async$uH)
+return B.H(B.aHY(B.e5("http://10.37.145.87:5000/patients/"+a+"/history"),n.gru()),$async$uH)
 case 7:m=c
 if(m.b===200){k=m
 l=t.j.a(A.aN.h_(B.zD(B.zu(k.e)).em(k.w),null))
@@ -99988,7 +99988,7 @@ if(m==null)m=0
 o=B.ae(12)
 l=B.ae(8)
 if(n.length===0)k=A.wP
-else if(A.n.aY(n,"/static")||A.n.aY(n,"http")){k=A.n.aY(n,"http")?n:"http://10.232.125.87:5000"+n
+else if(A.n.aY(n,"/static")||A.n.aY(n,"http")){k=A.n.aY(n,"http")?n:"http://10.37.145.87:5000"+n
 k=B.qZ(k,new B.axJ(),A.dK,A.ek,h,new B.axK(),h)}else k=A.wP
 k=B.m2(l,B.a6(h,k,A.F,A.uV,h,h,h,50,h,h,h,h,h,50),A.bN)
 l=a.h(0,"patient_id")
@@ -100677,7 +100677,7 @@ case 2:return B.I(o.at(-1),r)}})
 return B.K($async$wf,r)},
 acN(){var s=null,r=this.as
 if(r.length===0)return B.au(B.b([B.bN(A.pt,B.z(153,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),s,22),A.cJ,B.V("Photo",s,s,s,B.aD(s,s,B.z(153,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),s,s,s,s,s,s,s,s,9.5,s,s,A.as,s,s,!0,s,s,s,s,s,s,s,s),s,s)],t.p),A.O,A.aK,A.G)
-if(A.n.aY(r,"/static")||A.n.aY(r,"http")){r=A.n.aY(r,"http")?r:"http://10.232.125.87:5000"+r
+if(A.n.aY(r,"/static")||A.n.aY(r,"http")){r=A.n.aY(r,"http")?r:"http://10.37.145.87:5000"+r
 return B.qZ(r,new B.aAq(),A.dK,A.ek,68,new B.aAr(),68)}else return B.au(B.b([B.bN(A.pt,B.z(153,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),s,22),A.cJ,B.V("Photo",s,s,s,B.aD(s,s,B.z(153,A.J.l()>>>16&255,A.J.l()>>>8&255,A.J.l()&255),s,s,s,s,s,s,s,s,9.5,s,s,A.as,s,s,!0,s,s,s,s,s,s,s,s),s,s)],t.p),A.O,A.aK,A.G)},
 rG(){var s=0,r=B.L(t.H),q,p,o,n,m
 var $async$rG=B.G(function(a,b){if(a===1)return B.I(b,r)
@@ -101274,7 +101274,7 @@ case 4:return B.J(null,r)}})
 return B.K($async$w5,r)},
 acP(){var s,r=null,q=$.eQ(),p=q.e
 if(p==null||p.length===0)return B.cY(B.V(q.gN7(),r,r,r,A.rM,r,r),r,r)
-if(A.n.aY(p,"/static")||A.n.aY(p,"http")){s=A.n.aY(p,"http")?p:"http://10.232.125.87:5000"+p
+if(A.n.aY(p,"/static")||A.n.aY(p,"http")){s=A.n.aY(p,"http")?p:"http://10.37.145.87:5000"+p
 return B.qZ(s,new B.aBT(),A.dK,A.ek,90,new B.aBU(),90)}else return B.cY(B.V(q.gN7(),r,r,r,A.rM,r,r),r,r)},
 K(a){var s,r,q,p,o,n,m,l,k=this,j=null,i=k.e
 i===$&&B.a()
