@@ -19,6 +19,9 @@ import 'change_password_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load dynamically configured API Base URL from local storage
+  await LocalDb.loadBaseUrl();
+
   // Initialise local storage settings
   await LocalDb.instance.db;
 

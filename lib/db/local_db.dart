@@ -12,9 +12,41 @@ class LocalDb {
   static final LocalDb instance = LocalDb._();
   
   // 🏠 LOCAL MODE (College Submission Ready)
-  // Use your computer's Local IP for physical devices:
-  static const String baseUrl = 'http://10.37.145.87:5000'; 
-  // Use 'http://10.0.2.2:5000' if testing on the Android Emulator
+  static String? _dynamicBaseUrl;
+  
+  static String get baseUrl {
+    if (_dynamicBaseUrl != null && _dynamicBaseUrl!.isNotEmpty) {
+      return _dynamicBaseUrl!;
+    }
+    return 'http://10.37.145.87:5000'; // fallback
+  }
+
+  static Future<void> loadBaseUrl() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _dynamicBaseUrl = prefs.getString('server_base_url');
+    } catch (_) {}
+  }
+
+  static Future<void> setBaseUrl(String newUrl) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('server_base_url', newUrl);
+      _dynamicBaseUrl = newUrl;
+    } catch (_) {}
+  }
+
+  Future<int?> pingServer() async {
+    try {
+      final stopwatch = Stopwatch()..start();
+      final res = await http.get(Uri.parse('$baseUrl/cases')).timeout(const Duration(seconds: 4));
+      stopwatch.stop();
+      if (res.statusCode == 200) {
+        return stopwatch.elapsedMilliseconds;
+      }
+    } catch (_) {}
+    return null; // disconnected
+  }
 
   // Dummy db accessor to prevent breaking main.dart
   Future<void> get db async {}
