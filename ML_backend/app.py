@@ -139,10 +139,10 @@ except Exception as e:
 
 try:
     # 2. Visual Risk Model (MobileNetV2 .h5)
-    image_model = tf.keras.models.load_model("oral_risk_mobilenet.h5")
+    image_model = tf.keras.models.load_model("oral_risk_mobilenet_cv_grouped.h5")
     print("Image analysis model loaded successfully.")
 except Exception as e:
-    print(f"Error loading image model: {e}. Ensure 'oral_risk_mobilenet.h5' is in the same directory.")
+    print(f"Error loading image model: {e}. Ensure 'oral_risk_mobilenet_cv_grouped.h5' is in the same directory.")
     image_model = None
 
 # -----------------------------
