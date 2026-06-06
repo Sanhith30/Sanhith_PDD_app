@@ -18,7 +18,7 @@ class LocalDb {
     if (_dynamicBaseUrl != null && _dynamicBaseUrl!.isNotEmpty) {
       return _dynamicBaseUrl!;
     }
-    return 'http://10.37.145.87:5000'; // fallback
+    return 'http://10.77.209.87:5000'; // fallback
   }
 
   static Future<void> loadBaseUrl() async {
