@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'db/local_db.dart';
 import 'db/session.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  NEW CASE PAGE  —  "Surgical Luxury" design system
@@ -332,6 +333,16 @@ class _NewCasePageState extends State<NewCasePage> {
     setState(() => _isSubmitting = true);
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final requireConsent = prefs.getBool('pref_require_consent') ?? false;
+      if (requireConsent) {
+        final consentAccepted = await _showConsentDialog();
+        if (!consentAccepted) {
+          setState(() => _isSubmitting = false);
+          return;
+        }
+      }
+
       final String doctorId = Session.instance.doctorId;
 
       final Map<String, dynamic> clinicalData = {
@@ -403,6 +414,86 @@ class _NewCasePageState extends State<NewCasePage> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  Future<bool> _showConsentDialog() async {
+    bool informed = false;
+    bool photoConsent = false;
+    bool researchSharing = false;
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: const Color(0xFFFAF7F4),
+            title: const Row(
+              children: [
+                Icon(Icons.assignment_turned_in_outlined, color: Color(0xFF7B1E3A)),
+                SizedBox(width: 10),
+                Text('Digital Consent Agreement', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E0A10))),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Please confirm that the patient has provided explicit verbal and digital consent before proceeding with visual AI analysis:',
+                  style: TextStyle(fontSize: 12.5, color: Color(0xFF1E0A10)),
+                ),
+                const SizedBox(height: 16),
+                CheckboxListTile(
+                  title: const Text('Patient informed of clinical photography and screening', style: TextStyle(fontSize: 12, color: Color(0xFF1E0A10))),
+                  value: informed,
+                  activeColor: const Color(0xFF7B1E3A),
+                  onChanged: (val) => setDialogState(() => informed = val ?? false),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                CheckboxListTile(
+                  title: const Text('Patient consents to visual AI risk classification', style: TextStyle(fontSize: 12, color: Color(0xFF1E0A10))),
+                  value: photoConsent,
+                  activeColor: const Color(0xFF7B1E3A),
+                  onChanged: (val) => setDialogState(() => photoConsent = val ?? false),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                CheckboxListTile(
+                  title: const Text('Anonymized clinical data sharing for academic research', style: TextStyle(fontSize: 12, color: Color(0xFF1E0A10))),
+                  value: researchSharing,
+                  activeColor: const Color(0xFF7B1E3A),
+                  onChanged: (val) => setDialogState(() => researchSharing = val ?? false),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel', style: TextStyle(color: Color(0xFF9E8A8F))),
+              ),
+              TextButton(
+                onPressed: (informed && photoConsent) 
+                    ? () => Navigator.pop(ctx, true)
+                    : null,
+                child: Text(
+                  'Accept & Continue',
+                  style: TextStyle(
+                    color: (informed && photoConsent) ? const Color(0xFF7B1E3A) : const Color(0xFF9E8A8F),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+      ),
+    );
+    return result ?? false;
   }
 
   void _showSnackBar(String message, {bool isSuccess = false}) {

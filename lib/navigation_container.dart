@@ -123,10 +123,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       children: [
         Scaffold(
           backgroundColor: _bg,
-          body: IndexedStack(
-            index: _currentIndex,
-            children: _pages,
-          ),
+          body: _pages[_currentIndex],
           floatingActionButton: FloatingActionButton(
             onPressed: () => Navigator.push(
               context,

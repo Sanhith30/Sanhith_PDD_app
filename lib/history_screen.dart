@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'db/local_db.dart';
 import 'db/session.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  HISTORY SCREEN  —  "Surgical Luxury"
@@ -32,7 +33,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _loadCases();
   }
 
+  bool _compactView = false;
+
   Future<void> _loadCases() async {
+    final prefs = await SharedPreferences.getInstance();
+    final compact = prefs.getBool('pref_compact_view') ?? false;
     final cases = await LocalDb.instance.getCases(Session.instance.doctorId);
     
     // Deduplicate on client side to be safe: Keep only the first occurrence (latest) of each patient_id
@@ -46,6 +51,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     
     if (mounted) {
       setState(() { 
+        _compactView = compact;
         _allCases = uniqueMap.values.toList(); 
         _loading = false; 
       });
@@ -174,17 +180,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final int caseId = (c['id'] as int?) ?? 0;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: _compactView ? 6 : 12),
       elevation: 0,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: Colors.grey.shade200)),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: _compactView ? 2 : 12),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            width: 50, height: 50,
+            width: _compactView ? 36 : 50,
+            height: _compactView ? 36 : 50,
             color: Colors.grey.shade100,
             child: imagePath.isEmpty
                 ? const Icon(Icons.image_not_supported, color: Colors.grey)

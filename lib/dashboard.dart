@@ -4,6 +4,7 @@ import 'dart:io';
 import 'db/local_db.dart';
 import 'db/session.dart';
 import 'dart:ui' as ui;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -35,9 +36,11 @@ class _DashboardPageState extends State<DashboardPage> {
     _loadCases();
   }
 
+  bool _compactView = false;
+
   Future<void> _loadCases() async {
-    // 1. Fetch ALL cases (Backend already returns the latest per patient for the global list, 
-    // but we might want to distinguish between unique patients and total assessments if needed)
+    final prefs = await SharedPreferences.getInstance();
+    final compact = prefs.getBool('pref_compact_view') ?? false;
     final cases = await LocalDb.instance.getCases(Session.instance.doctorId);
     
     // 2. Deduplicate to find Unique Patients (latest case for each)
@@ -51,6 +54,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     if (mounted) {
       setState(() {
+        _compactView = compact;
         _allCases = cases; // All assessments
         _uniquePatients = uniqueMap.values.toList(); // Latest case per patient
         _loading = false;
@@ -364,8 +368,8 @@ class _DashboardPageState extends State<DashboardPage> {
       onTap: () => Navigator.pushNamed(context, '/case_detail', arguments: c['id']),
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: EdgeInsets.only(bottom: _compactView ? 6 : 12),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: _compactView ? 8 : 16),
         decoration: BoxDecoration(
           color: _surface,
           borderRadius: BorderRadius.circular(16),
