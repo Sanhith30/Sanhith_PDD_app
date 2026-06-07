@@ -25,18 +25,19 @@ class LocalDb {
     try {
       final prefs = await SharedPreferences.getInstance();
       _dynamicBaseUrl = prefs.getString('server_base_url');
-      // Automigrate/reset old development IP configurations to the production URL
-      if (_dynamicBaseUrl != null &&
-          (_dynamicBaseUrl!.contains('10.77.209.87') ||
-           _dynamicBaseUrl!.contains('10.37.145.87') ||
-           _dynamicBaseUrl!.contains('127.0.0.1') ||
-           _dynamicBaseUrl!.contains('localhost') ||
-           _dynamicBaseUrl!.trim().isEmpty)) {
-        _dynamicBaseUrl = 'https://sanhith30-oral-ulcer-ai-backend.hf.space';
-        await prefs.setString('server_base_url', _dynamicBaseUrl!);
+      // Automigrate/reset any old development IP configurations or localhost to the production URL
+      if (_dynamicBaseUrl != null) {
+        final hasIp = RegExp(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}').hasMatch(_dynamicBaseUrl!);
+        if (hasIp ||
+            _dynamicBaseUrl!.contains('localhost') ||
+            _dynamicBaseUrl!.trim().isEmpty) {
+          _dynamicBaseUrl = 'https://sanhith30-oral-ulcer-ai-backend.hf.space';
+          await prefs.setString('server_base_url', _dynamicBaseUrl!);
+        }
       }
     } catch (_) {}
   }
+
 
   static Future<void> setBaseUrl(String newUrl) async {
     try {
