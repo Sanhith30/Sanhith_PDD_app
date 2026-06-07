@@ -32,10 +32,22 @@ import random
 import time
 import tensorflow as tf
 
+# --- LOAD LOCAL ENVIRONMENT SECRETS ---
+env_file = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(env_file):
+    with open(env_file) as f:
+        for line in f:
+            if line.strip() and not line.startswith("#"):
+                try:
+                    key, val = line.strip().split("=", 1)
+                    os.environ[key.strip()] = val.strip().strip('"').strip("'")
+                except ValueError:
+                    pass
+
 # --- SUPABASE CLIENT SETUP ---
 from supabase import create_client, Client
-supabase_url = os.environ.get("SUPABASE_URL", "https://auzhqulxnoynvkznwfzb.supabase.co")
-supabase_key = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1emhxdWx4bm95bnZrem53ZnpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDgyNzA3OCwiZXhwIjoyMDk2NDAzMDc4fQ.7ft6YPRDD-UIEsyTq6r0w0l1tJ2JleRTJP0VYobQqtk")
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_key = os.environ.get("SUPABASE_KEY")
 supabase_client = None
 if supabase_url and supabase_key:
     try:
@@ -43,6 +55,7 @@ if supabase_url and supabase_key:
         print("Supabase client initialized successfully.")
     except Exception as e:
         print(f"Error initializing Supabase client: {e}")
+
 
 def upload_to_supabase(local_file_path: str, bucket: str, folder: str, file_name: str) -> str:
     """
@@ -138,20 +151,20 @@ def read_root():
 # --- 2. SMTP MAIL CONFIGURATION ---
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", 587))
-SMTP_USER = os.environ.get("SMTP_USER", "sanhithreddy5131@gmail.com")
-SMTP_PASS = os.environ.get("SMTP_PASS", "kfkr xamb vahg coyx")
+SMTP_USER = os.environ.get("SMTP_USER")
+SMTP_PASS = os.environ.get("SMTP_PASS")
 
 # In-memory store for OTPs: { email: {"code": "123456", "expiry": timestamp} }
 otp_store = {}
 
 def send_otp_email(receiver_email, otp_code):
     # 0. Google Apps Script Web App (100% Free, sends from real Gmail, lands in Inbox!)
-    script_url = os.environ.get("GMAIL_SCRIPT_URL", "https://script.google.com/macros/s/AKfycbxNd0Am-1Tz9gygJ9EujAOPwpFCAVX_2rFIpz4fciSVXjYhbY58MaCxxtu2pT209kGPoA/exec")
+    script_url = os.environ.get("GMAIL_SCRIPT_URL")
     if script_url:
         try:
             import requests
             payload = {
-                "secret": "SaveethaOralSentrySecret123!",
+                "secret": os.environ.get("GMAIL_SCRIPT_SECRET", "SaveethaOralSentrySecret123!"),
                 "to": receiver_email,
                 "subject": "Saveetha Oral Sentry - Verification Code",
                 "html": f"""
@@ -167,6 +180,7 @@ def send_otp_email(receiver_email, otp_code):
                 </html>
                 """
             }
+
             r = requests.post(script_url, json=payload, timeout=15)
             if r.status_code == 200:
                 res_data = r.json()
