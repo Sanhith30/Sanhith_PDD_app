@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math' as math;
+import 'db/session.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Oral Ulcer AI — Splash Screen
@@ -47,6 +49,9 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
+    // Play native platform click chime for tactile feedback
+    SystemSound.play(SystemSoundType.click);
+
     // 1 ── Arc sweeps 0→100% in 1800 ms
     _arcController = AnimationController(
         duration: const Duration(milliseconds: 1800), vsync: this);
@@ -88,7 +93,7 @@ class _SplashScreenState extends State<SplashScreen>
         CurvedAnimation(parent: _breatheController,
             curve: Curves.easeInOutSine));
 
-    // 5 ── Progress line fills over 3000 ms
+    // 5 ── Progress line fills over 3000 ms (will be dynamically speeded up on autologin)
     _lineController = AnimationController(
         duration: const Duration(milliseconds: 3000), vsync: this);
     _lineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -96,7 +101,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     // ── Orchestration ──────────────────────────────────────────────────────
     _arcController.forward();
-    _lineController.forward();
 
     Future.delayed(const Duration(milliseconds: 900),
         () { if (mounted) _logoController.forward(); });
@@ -104,16 +108,34 @@ class _SplashScreenState extends State<SplashScreen>
     Future.delayed(const Duration(milliseconds: 1500),
         () { if (mounted) _textController.forward(); });
 
-    Future.delayed(const Duration(milliseconds: 1900),
-        () { if (mounted) _breatheController.repeat(reverse: true); });
+    // Try to auto-restore active clinician session
+    Session.instance.restoreSession().then((hasSession) {
+      if (!mounted) return;
+      if (hasSession) {
+        // Fast-track session: progress line fills faster and routes in 1.5s
+        _lineController.duration = const Duration(milliseconds: 1500);
+        _lineController.forward();
 
-    // Navigate to onboarding (first launch) or login
-    Future.delayed(const Duration(milliseconds: 3800), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          widget.showOnboarding ? '/onboarding' : '/login',
-        );
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          }
+        });
+      } else {
+        // Standard flow: fills in 3.0s and routes in 3.8s
+        _lineController.forward();
+
+        Future.delayed(const Duration(milliseconds: 1900),
+            () { if (mounted) _breatheController.repeat(reverse: true); });
+
+        Future.delayed(const Duration(milliseconds: 3800), () {
+          if (mounted) {
+            Navigator.pushReplacementNamed(
+              context,
+              widget.showOnboarding ? '/onboarding' : '/login',
+            );
+          }
+        });
       }
     });
   }
@@ -338,9 +360,11 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 // ── LOGO — Premium Image Asset ────
                 child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/premium_medical_logo.png',
-                    fit: BoxFit.cover,
+                  child: _ShimmerOverlay(
+                    child: Image.asset(
+                      'assets/images/premium_medical_logo.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
@@ -568,4 +592,65 @@ class _SDCMonogramPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SDCMonogramPainter old) => false;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SHIMMER OVERLAY WIDGET
+//  Applies a premium, sweeping linear gradient mask across its child widget
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _ShimmerOverlay extends StatefulWidget {
+  final Widget child;
+  const _ShimmerOverlay({required this.child});
+
+  @override
+  State<_ShimmerOverlay> createState() => _ShimmerOverlayState();
+}
+
+class _ShimmerOverlayState extends State<_ShimmerOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _shimmerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 2200),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _shimmerController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _shimmerController,
+      builder: (context, child) {
+        final double slide = _shimmerController.value;
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment(-2.0 + 3.0 * slide, -1.0),
+              end: Alignment(-1.0 + 3.0 * slide, 1.0),
+              colors: [
+                Colors.transparent,
+                const Color(0xFFC9A84C).withOpacity(0.15),
+                const Color(0xFFC9A84C).withOpacity(0.75), // Gold shimmer
+                const Color(0xFFC9A84C).withOpacity(0.15),
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
+            ).createShader(bounds);
+          },
+          child: widget.child,
+        );
+      },
+    );
+  }
 }

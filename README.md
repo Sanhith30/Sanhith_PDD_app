@@ -24,6 +24,15 @@
 
 ---
 
+## 🚀 Live Cloud Deployment
+
+* **Live Web Application:** [Sanhith_PDD_app Web Client](https://Sanhith30.github.io/Sanhith_PDD_app/)
+* **Live Production API:** `https://sanhith30-oral-ulcer-ai-backend.hf.space`
+* **Cloud Database & Storage:** Supabase Cloud (`aws-1-ap-south-1`)
+* **Email Delivery API:** Google Apps Script Web App (Gmail Relay)
+
+---
+
 ## Project Overview
 
 Saveetha Oral Sentry is an advanced mobile-web clinical decision support application designed to assist dental professionals and clinicians in the early screening, risk stratification, and monitoring of oral ulcers and potentially malignant oral disorders (OPMDs).
@@ -74,41 +83,49 @@ Saveetha Oral Sentry facilitates a seamless, end-to-end diagnostic workflow desi
 
 ## System Architecture
 
-The application is structured on a modern, decoupled client-server architecture built for enterprise stability and low latency:
+The application is deployed on a modern, production-grade cloud architecture with $0 cost:
 
 ```mermaid
 graph TD
-    subgraph Frontend [Mobile Client - Flutter]
+    subgraph Frontend [Mobile/Web Client - Flutter]
         UI[Surgical Luxury UI]
     end
     
-    subgraph Backend [FastAPI Server]
-        API[REST Endpoints]
-        Auth[PyJWT Auth]
+    subgraph CloudBackend [FastAPI Server - Hugging Face Spaces]
+        API[REST API Endpoints]
+        Auth[PyJWT Authentication]
+        AIEngine[Hybrid AI Inference Engine]
+    end
+    
+    subgraph SupabaseCloud [Database & Storage - Supabase]
         DB[(PostgreSQL Database)]
+        Storage[(Public Storage Buckets)]
     end
     
-    subgraph AIEngine [Hybrid AI Engine]
-        ML[Scikit-Learn ML Model]
-        DL[TensorFlow MobileNetV2]
-        Heuristics[OpenCV Heuristics]
+    subgraph EmailService [Google Apps Script API]
+        GAS[Gmail Relay Web App]
     end
     
-    UI <-->|HTTP/REST| API
+    UI <-->|HTTP/HTTPS| API
     API <--> Auth
     API <--> DB
-    API --> AIEngine
-    AIEngine -->|Risk Score| API
+    API -->|Persist Photos| Storage
+    API -->|Trigger OTP| GAS
+    GAS -->|SMTP delivery| UI
 ```
 
-### 1. Mobile Frontend (Flutter and Dart)
-A native-performance client implementing stateful flows, secure API integrations, native camera image capture, PDF rendering, and interactive graphing engines.
+### 1. Frontend Client (Flutter Mobile & Web)
+A high-performance, cross-platform client that compiles natively to Android/iOS and Web. It features interactive dashboard analytics, dynamic API host switching, direct image capture/upload, and automated clinical PDF report generation.
 
-### 2. Backend API (Python and FastAPI)
-A high-performance asynchronous web API that manages session state, JWT authentications, PostgreSQL transaction sessions, database updates, and delegates concurrent CPU/GPU workloads to the AI engine.
+### 2. Cloud Backend API (FastAPI & Hugging Face Spaces)
+A Python server running inside a secure Docker container on Hugging Face Spaces. It handles token-based authentications, runs OpenCV image preprocessing, and executes the deep learning models concurrently.
 
-### 3. Database Layer (PostgreSQL)
-A relational database storing clinician accounts, patient information profiles, and historical clinical cases. It automatically builds schema structures on backend startup via SQLAlchemy ORM.
+### 3. Cloud Database & Storage (Supabase)
+* **PostgreSQL:** Managed database storing clinician profiles, patient records, and case files.
+* **Supabase Storage:** A public storage bucket (`clinical-images`) containing clinician avatars, patient photos, and lesion uploads, which are served to clients globally via CDN URLs.
+
+### 4. Transactional Email API (Google Apps Script)
+An HTTP web service that forwards OTP codes through Google's own SMTP servers, bypassing typical cloud server port blocks and SPF/DMARC checks to guarantee real-time inbox delivery.
 
 ---
 

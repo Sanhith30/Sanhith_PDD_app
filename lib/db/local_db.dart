@@ -18,13 +18,23 @@ class LocalDb {
     if (_dynamicBaseUrl != null && _dynamicBaseUrl!.isNotEmpty) {
       return _dynamicBaseUrl!;
     }
-    return 'http://10.77.209.87:5000'; // fallback
+    return 'https://sanhith30-oral-ulcer-ai-backend.hf.space'; // fallback
   }
 
   static Future<void> loadBaseUrl() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _dynamicBaseUrl = prefs.getString('server_base_url');
+      // Automigrate/reset old development IP configurations to the production URL
+      if (_dynamicBaseUrl != null &&
+          (_dynamicBaseUrl!.contains('10.77.209.87') ||
+           _dynamicBaseUrl!.contains('10.37.145.87') ||
+           _dynamicBaseUrl!.contains('127.0.0.1') ||
+           _dynamicBaseUrl!.contains('localhost') ||
+           _dynamicBaseUrl!.trim().isEmpty)) {
+        _dynamicBaseUrl = 'https://sanhith30-oral-ulcer-ai-backend.hf.space';
+        await prefs.setString('server_base_url', _dynamicBaseUrl!);
+      }
     } catch (_) {}
   }
 
@@ -39,7 +49,7 @@ class LocalDb {
   Future<int?> pingServer() async {
     try {
       final stopwatch = Stopwatch()..start();
-      final res = await http.get(Uri.parse('$baseUrl/cases')).timeout(const Duration(seconds: 4));
+      final res = await http.get(Uri.parse(baseUrl)).timeout(const Duration(seconds: 4));
       stopwatch.stop();
       if (res.statusCode == 200) {
         return stopwatch.elapsedMilliseconds;
@@ -376,5 +386,24 @@ class LocalDb {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('tour_done', true);
     } catch (_) {}
+  }
+
+  Future<bool> updateCasePatientDetails({
+    required int caseId,
+    required String patientId,
+    required String patientName,
+  }) async {
+    try {
+      final res = await http.put(
+        Uri.parse('$baseUrl/cases/$caseId/details'),
+        headers: _headers,
+        body: jsonEncode({
+          'patient_id': patientId,
+          'patient_name': patientName,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      return res.statusCode == 200;
+    } catch (_) {}
+    return false;
   }
 }

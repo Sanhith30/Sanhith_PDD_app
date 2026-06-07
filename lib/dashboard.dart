@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'db/local_db.dart';
 import 'db/session.dart';
 import 'dart:ui' as ui;
@@ -14,13 +15,10 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  int _currentIndex = 0;
   List<Map<String, dynamic>> _allCases = [];
   List<Map<String, dynamic>> _uniquePatients = [];
   bool _loading = true;
   
-  // Removed Tour state (moved to MainScaffold)
-
   // ── Surgical Luxury Palette ────────────────────────────────────────────────
   static const Color _primary   = Color(0xFF7B1E3A); // Brand Maroon
   static const Color _depth     = Color(0xFF5C1028); // Deep Maroon
@@ -30,20 +28,25 @@ class _DashboardPageState extends State<DashboardPage> {
   static const Color _text      = Color(0xFF1E0A10); // Near-black Maroon
   static const Color _muted     = Color(0xFF9E8A8F); // Warm Muted Text
 
+  bool _compactView = false;
+  List<String> _dismissedNotifications = [];
+  List<Map<String, dynamic>> _activeNotifications = [];
+
   @override
   void initState() {
     super.initState();
     _loadCases();
   }
 
-  bool _compactView = false;
-
   Future<void> _loadCases() async {
     final prefs = await SharedPreferences.getInstance();
     final compact = prefs.getBool('pref_compact_view') ?? false;
     final cases = await LocalDb.instance.getCases(Session.instance.doctorId);
     
-    // 2. Deduplicate to find Unique Patients (latest case for each)
+    // Load dismissed notifications list
+    final dismissedList = prefs.getStringList('pref_dismissed_notifications') ?? [];
+    
+    // Deduplicate to find Unique Patients (latest case for each)
     final Map<String, Map<String, dynamic>> uniqueMap = {};
     for (var c in cases) {
       final pid = c['patient_id']?.toString() ?? 'unknown';
@@ -52,14 +55,247 @@ class _DashboardPageState extends State<DashboardPage> {
       }
     }
 
+    final uniquePatients = uniqueMap.values.toList();
+
+    // Dynamically generate clinician notifications
+    final List<Map<String, dynamic>> notifications = [];
+
+    // 1. High Risk Case Alerts
+    for (final c in uniquePatients) {
+      final risk = (c['risk_category'] ?? '').toString();
+      final caseId = c['id']?.toString() ?? '';
+      final patientName = c['patient_name'] ?? 'Anonymous';
+      final key = 'high_risk_$caseId';
+
+      if (risk.toUpperCase().contains('HIGH') && !dismissedList.contains(key)) {
+        notifications.add({
+          'key': key,
+          'type': 'high_risk',
+          'title': 'Urgent: High Risk Case',
+          'body': 'Biopsy recommendation and follow-up needed for $patientName.',
+          'icon': Icons.warning_rounded,
+          'color': Colors.red,
+          'caseId': c['id'],
+        });
+      }
+    }
+
+    // 2. Milestones Alerts
+    final totalCasesCount = uniquePatients.length;
+    final highCasesCount = uniquePatients.where((c) =>
+        (c['risk_category'] ?? '').toString().toUpperCase().contains('HIGH')).length;
+
+    final hasBronze = totalCasesCount >= 1;
+    final hasSilver = totalCasesCount >= 5;
+    final hasGold = highCasesCount >= 2;
+
+    if (hasBronze && !dismissedList.contains('milestone_rookie')) {
+      notifications.add({
+        'key': 'milestone_rookie',
+        'type': 'milestone',
+        'title': 'Milestone Achieved',
+        'body': 'Unlocked: "Screening Rookie" milestone badge is active.',
+        'icon': Icons.shield_outlined,
+        'color': const Color(0xFFCD7F32), // Bronze
+      });
+    }
+    if (hasSilver && !dismissedList.contains('milestone_veteran')) {
+      notifications.add({
+        'key': 'milestone_veteran',
+        'type': 'milestone',
+        'title': 'Milestone Achieved',
+        'body': 'Unlocked: "Diagnostic Veteran" milestone badge is active.',
+        'icon': Icons.emoji_events_outlined,
+        'color': const Color(0xFFC0C0C0), // Silver
+      });
+    }
+    if (hasGold && !dismissedList.contains('milestone_sentinel')) {
+      notifications.add({
+        'key': 'milestone_sentinel',
+        'type': 'milestone',
+        'title': 'Milestone Achieved',
+        'body': 'Unlocked: "Risk Sentinel" milestone badge is active.',
+        'icon': Icons.local_fire_department_outlined,
+        'color': _accent,
+      });
+    }
+
+    // 3. Cloud Database Status Alert
+    final latency = await LocalDb.instance.pingServer();
+    if (latency != null && !dismissedList.contains('sync_online')) {
+      notifications.add({
+        'key': 'sync_online',
+        'type': 'sync',
+        'title': 'Clinical Portal Connected',
+        'body': 'Successfully connected to PostgreSQL FastAPI backend (latency: ${latency}ms).',
+        'icon': Icons.cloud_done_rounded,
+        'color': Colors.green,
+      });
+    }
+
     if (mounted) {
       setState(() {
         _compactView = compact;
-        _allCases = cases; // All assessments
-        _uniquePatients = uniqueMap.values.toList(); // Latest case per patient
+        _allCases = cases;
+        _uniquePatients = uniquePatients;
+        _dismissedNotifications = dismissedList;
+        _activeNotifications = notifications;
         _loading = false;
       });
     }
+  }
+
+  Future<void> _dismissNotification(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = List<String>.from(_dismissedNotifications);
+    if (!list.contains(key)) {
+      list.add(key);
+    }
+    await prefs.setStringList('pref_dismissed_notifications', list);
+    if (mounted) {
+      setState(() {
+        _dismissedNotifications = list;
+        _activeNotifications.removeWhere((item) => item['key'] == key);
+      });
+    }
+  }
+
+  void _showNotificationsBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.6,
+              decoration: const BoxDecoration(
+                color: _bg,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    decoration: const BoxDecoration(
+                      color: _primary,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.notifications_rounded, color: _accent, size: 20),
+                            SizedBox(width: 10),
+                            Text(
+                              "CLINICAL ALERTS",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Body
+                  Expanded(
+                    child: _activeNotifications.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.notifications_off_rounded, color: _muted.withOpacity(0.3), size: 48),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  "No active notifications",
+                                  style: TextStyle(color: _muted, fontSize: 13, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            itemCount: _activeNotifications.length,
+                            separatorBuilder: (context, index) => const Divider(height: 1),
+                            itemBuilder: (context, index) {
+                              final item = _activeNotifications[index];
+                              return Dismissible(
+                                key: Key(item['key']),
+                                background: Container(
+                                  color: Colors.red,
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 20),
+                                  child: const Icon(Icons.delete_sweep_rounded, color: Colors.white),
+                                ),
+                                direction: DismissDirection.endToStart,
+                                onDismissed: (direction) async {
+                                  final String key = item['key'];
+                                  await _dismissNotification(key);
+                                  setModalState(() {});
+                                },
+                                child: ListTile(
+                                  leading: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: (item['color'] as Color).withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 20),
+                                  ),
+                                  title: Text(
+                                    item['title'] as String,
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: _text),
+                                  ),
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      item['body'] as String,
+                                      style: const TextStyle(fontSize: 11, color: _muted, height: 1.3),
+                                    ),
+                                  ),
+                                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: _muted),
+                                  onTap: () {
+                                    Navigator.pop(context); // Close bottom sheet
+                                    if (item['type'] == 'high_risk') {
+                                      Navigator.pushNamed(context, '/case_detail', arguments: item['caseId']).then((_) {
+                                        _loadCases();
+                                      });
+                                    } else if (item['type'] == 'milestone') {
+                                      Navigator.pushNamed(context, '/profile').then((_) {
+                                        _loadCases();
+                                      });
+                                    }
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -170,9 +406,38 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                           Row(
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.notifications_none_rounded, color: Colors.white70, size: 24),
-                                onPressed: () {},
+                              Stack(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.notifications_none_rounded, color: Colors.white70, size: 24),
+                                    onPressed: _showNotificationsBottomSheet,
+                                  ),
+                                  if (_activeNotifications.isNotEmpty)
+                                    Positioned(
+                                      right: 8,
+                                      top: 8,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(3),
+                                        decoration: const BoxDecoration(
+                                          color: _accent,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 14,
+                                          minHeight: 14,
+                                        ),
+                                        child: Text(
+                                          '${_activeNotifications.length}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                               GestureDetector(
                                 onTap: () => Navigator.pushNamed(context, '/profile').then((_) {
@@ -316,7 +581,6 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildStatsRow() {
     final highCount = _uniquePatients.where((c) => (c['risk_category'] ?? '').toString().contains('High')).length;
     final medCount  = _uniquePatients.where((c) => (c['risk_category'] ?? '').toString().contains('Intermediate')).length;
-    final lowCount  = _uniquePatients.where((c) => (c['risk_category'] ?? '').toString().contains('Low')).length;
 
     return Row(
       children: [
@@ -365,7 +629,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final Color riskColor = risk.contains('High') ? Colors.red : (risk.contains('Intermediate') ? Colors.orange : Colors.green);
 
     return InkWell(
-      onTap: () => Navigator.pushNamed(context, '/case_detail', arguments: c['id']),
+      onTap: () => Navigator.pushNamed(context, '/case_detail', arguments: c['id']).then((_) => _loadCases()),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         margin: EdgeInsets.only(bottom: _compactView ? 6 : 12),

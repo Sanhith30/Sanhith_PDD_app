@@ -13,8 +13,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
 
   static const Color _primary = Color(0xFF7B1E3A);
-  static const Color _accent  = Color(0xFFC9A84C);
-  static const Color _bg      = Color(0xFFFAF7F4);
 
   final List<OnboardingData> _slides = [
     OnboardingData(
@@ -103,27 +101,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: 32),
                 
-                // Button
-                ElevatedButton(
-                  onPressed: () {
-                    if (_currentPage < _slides.length - 1) {
+                // Button / Swipe-to-Unlock Slider
+                if (_currentPage == _slides.length - 1)
+                  _SwipeToUnlockSlider(onSwipeComplete: _finish)
+                else
+                  ElevatedButton(
+                    onPressed: () {
                       _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
-                    } else {
-                      _finish();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: _primary,
-                    minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    elevation: 0,
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: _primary,
+                      minimumSize: const Size(double.infinity, 56),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      _currentPage == 0 ? "Get Started" : "Continue",
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                    ),
                   ),
-                  child: Text(
-                    _currentPage == 0 ? "Get Started" : (_currentPage == _slides.length - 1 ? "Start Using Oral Ulcer AI" : "Continue"),
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-                  ),
-                ),
               ],
             ),
           ),
@@ -138,18 +135,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon Circle
-          Container(
-            width: 180, height: 180,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white24, width: 2),
-              boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.1), blurRadius: 40)],
-            ),
-            child: Center(
-              child: Icon(data.icon, color: Colors.white, size: 80),
-            ),
-          ),
+          // Dynamic scanner overlay for slides 2 and 3, static icon for slide 1
+          if (data.isFirst)
+            Container(
+              width: 180, height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white24, width: 2),
+                boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.1), blurRadius: 40)],
+              ),
+              child: Center(
+                child: Icon(data.icon, color: Colors.white, size: 80),
+              ),
+            )
+          else
+            _ClinicalScanAnimator(innerIcon: data.icon),
           const SizedBox(height: 50),
           
           // Title
@@ -271,4 +271,322 @@ class OnboardingData {
     this.gridItems,
     this.listItems,
   });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  CLINICAL SCAN ANIMATOR
+//  Displays a target-locked circular diagnostic sweep representing AI scanning
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _ClinicalScanAnimator extends StatefulWidget {
+  final IconData innerIcon;
+  const _ClinicalScanAnimator({required this.innerIcon});
+
+  @override
+  State<_ClinicalScanAnimator> createState() => _ClinicalScanAnimatorState();
+}
+
+class _ClinicalScanAnimatorState extends State<_ClinicalScanAnimator>
+    with TickerProviderStateMixin {
+  late AnimationController _sweepController;
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _sweepController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _sweepController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_sweepController, _pulseController]),
+      builder: (context, child) {
+        return CustomPaint(
+          painter: _ScanPainter(
+            sweepProgress: _sweepController.value,
+            pulseProgress: _pulseController.value,
+          ),
+          child: Container(
+            width: 180,
+            height: 180,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white24, width: 2),
+            ),
+            child: Center(
+              child: Icon(
+                widget.innerIcon,
+                color: Colors.white.withOpacity(0.85),
+                size: 80,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ScanPainter extends CustomPainter {
+  final double sweepProgress; // 0.0 -> 1.0
+  final double pulseProgress; // 0.0 -> 1.0
+
+  const _ScanPainter({required this.sweepProgress, required this.pulseProgress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+
+    final clipPath = Path()..addOval(Rect.fromCircle(center: center, radius: radius));
+    canvas.save();
+    canvas.clipPath(clipPath);
+
+    // 1. Draw thin Grid lines
+    final gridPaint = Paint()
+      ..color = Colors.white.withOpacity(0.08)
+      ..strokeWidth = 1.0;
+
+    const int gridDivisions = 6;
+    for (int i = 1; i < gridDivisions; i++) {
+      final x = (size.width / gridDivisions) * i;
+      final y = (size.height / gridDivisions) * i;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    // 2. Draw pulsing hot-zones (lesion hotspots simulator)
+    final hotZonePaint = Paint()..style = PaintingStyle.fill;
+    final pulsePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final List<Offset> hotZones = [
+      Offset(size.width * 0.35, size.height * 0.45),
+      Offset(size.width * 0.65, size.height * 0.35),
+      Offset(size.width * 0.50, size.height * 0.70),
+    ];
+
+    for (var zone in hotZones) {
+      hotZonePaint.color = Colors.red.withOpacity(0.4 + 0.4 * pulseProgress);
+      canvas.drawCircle(zone, 4.0, hotZonePaint);
+
+      pulsePaint.color = Colors.red.withOpacity(0.8 * (1.0 - pulseProgress));
+      canvas.drawCircle(zone, 4.0 + 12.0 * pulseProgress, pulsePaint);
+    }
+
+    // 3. Draw sweeping laser scanner
+    final double laserY = size.height * sweepProgress;
+    final laserGlowPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.green.withOpacity(0.0),
+          Colors.green.withOpacity(0.15 * (1.0 - (sweepProgress - 0.5).abs())),
+          Colors.green.withOpacity(0.35 * (1.0 - (sweepProgress - 0.5).abs())),
+          Colors.green.withOpacity(0.0),
+        ],
+        stops: const [0.0, 0.45, 0.5, 1.0],
+      ).createShader(Rect.fromLTRB(0, laserY - 25, size.width, laserY + 25));
+
+    canvas.drawRect(Rect.fromLTRB(0, laserY - 20, size.width, laserY + 20), laserGlowPaint);
+
+    final laserCorePaint = Paint()
+      ..color = const Color(0xFFC9A84C) // Gold scan line
+      ..strokeWidth = 2.0;
+
+    canvas.drawLine(Offset(0, laserY), Offset(size.width, laserY), laserCorePaint);
+
+    canvas.restore();
+
+    // 4. Target crosshairs (outside clipping)
+    final hudPaint = Paint()
+      ..color = const Color(0xFFC9A84C).withOpacity(0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    canvas.drawCircle(center, radius + 4, Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+    );
+
+    final double offset = radius * 0.707;
+    canvas.drawLine(Offset(center.dx - offset - 6, center.dy - offset), Offset(center.dx - offset, center.dy - offset), hudPaint);
+    canvas.drawLine(Offset(center.dx - offset, center.dy - offset - 6), Offset(center.dx - offset, center.dy - offset), hudPaint);
+
+    canvas.drawLine(Offset(center.dx + offset + 6, center.dy - offset), Offset(center.dx + offset, center.dy - offset), hudPaint);
+    canvas.drawLine(Offset(center.dx + offset, center.dy - offset - 6), Offset(center.dx + offset, center.dy - offset), hudPaint);
+
+    canvas.drawLine(Offset(center.dx - offset - 6, center.dy + offset), Offset(center.dx - offset, center.dy + offset), hudPaint);
+    canvas.drawLine(Offset(center.dx - offset, center.dy + offset + 6), Offset(center.dx - offset, center.dy + offset), hudPaint);
+
+    canvas.drawLine(Offset(center.dx + offset + 6, center.dy + offset), Offset(center.dx + offset, center.dy + offset), hudPaint);
+    canvas.drawLine(Offset(center.dx + offset, center.dy + offset + 6), Offset(center.dx + offset, center.dy + offset), hudPaint);
+  }
+
+  @override
+  bool shouldRepaint(_ScanPainter old) =>
+      old.sweepProgress != sweepProgress || old.pulseProgress != pulseProgress;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SWIPE-TO-UNLOCK ENTRANCE SLIDER
+//  Premium gesture-tracked slider button requiring swipe to access dashboard
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _SwipeToUnlockSlider extends StatefulWidget {
+  final VoidCallback onSwipeComplete;
+  const _SwipeToUnlockSlider({required this.onSwipeComplete});
+
+  @override
+  State<_SwipeToUnlockSlider> createState() => _SwipeToUnlockSliderState();
+}
+
+class _SwipeToUnlockSliderState extends State<_SwipeToUnlockSlider>
+    with SingleTickerProviderStateMixin {
+  double _dragPosition = 0.0;
+  late AnimationController _dragController;
+  late Animation<double> _dragAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _dragController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    _dragAnimation = _dragController.drive(Tween<double>(begin: 0.0, end: 0.0));
+  }
+
+  @override
+  void dispose() {
+    _dragController.dispose();
+    super.dispose();
+  }
+
+  void _onDragUpdate(DragUpdateDetails details, double maxDragWidth) {
+    setState(() {
+      _dragPosition = (_dragPosition + details.primaryDelta!).clamp(0.0, maxDragWidth);
+    });
+  }
+
+  void _onDragEnd(DragEndDetails details, double maxDragWidth) {
+    if (_dragPosition >= maxDragWidth * 0.85) {
+      setState(() {
+        _dragPosition = maxDragWidth;
+      });
+      widget.onSwipeComplete();
+    } else {
+      _dragAnimation = Tween<double>(begin: _dragPosition, end: 0.0).animate(
+        CurvedAnimation(parent: _dragController, curve: Curves.easeOut),
+      )..addListener(() {
+          setState(() {
+            _dragPosition = _dragAnimation.value;
+          });
+        });
+      _dragController.forward(from: 0.0);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double trackHeight = 56.0;
+    const double handleSize = 48.0;
+    const double padding = 4.0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double maxDragWidth = constraints.maxWidth - handleSize - (padding * 2);
+
+        return Container(
+          width: double.infinity,
+          height: trackHeight,
+          decoration: BoxDecoration(
+            color: const Color(0xFF5E1428), // Darker brand maroon
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFFC9A84C).withOpacity(0.3), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Swipe suggestion/guide hint text
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.chevron_right_rounded, color: Color(0xFFC9A84C), size: 18),
+                    const SizedBox(width: 4),
+                    Text(
+                      "SWIPE TO START CLINICAL APP",
+                      style: TextStyle(
+                        color: const Color(0xFFFAF7F4).withOpacity(0.65),
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Sliding Gold Handle with Clinician/Hospital Cross
+              Positioned(
+                left: padding + _dragPosition,
+                top: padding,
+                bottom: padding,
+                child: GestureDetector(
+                  onHorizontalDragUpdate: (details) => _onDragUpdate(details, maxDragWidth),
+                  onHorizontalDragEnd: (details) => _onDragEnd(details, maxDragWidth),
+                  child: Container(
+                    width: handleSize,
+                    height: handleSize,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFFC9A84C), // Gold
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.local_hospital_rounded, // Gold Cross
+                      color: Color(0xFF7B1E3A),
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

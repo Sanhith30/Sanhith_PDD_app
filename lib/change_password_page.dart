@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:crypto/crypto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'db/local_db.dart';
 import 'db/session.dart';
 
@@ -21,6 +25,56 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   static const Color _bg     = Color(0xFFFAF7F4);
   static const Color _text   = Color(0xFF1E0A10);
   static const Color _muted  = Color(0xFF9E8A8F);
+  static const Color _gold   = Color(0xFFC9A84C);
+
+  void _suggestPassphrase() {
+    final prefixes = ['Molar', 'Enamel', 'Crown', 'Pulp', 'Canine', 'Gingiva', 'Dentist', 'Cusp', 'Incisor', 'Maxilla', 'Mandible', 'Orthodontic'];
+    final connectors = ['Shield', 'Guard', 'Apex', 'Ridge', 'Arch', 'Root', 'Bite', 'Smile', 'SDC', 'Clinic', 'Oral', 'Ulcer'];
+    final math.Random random = math.Random();
+    
+    final pfx = prefixes[random.nextInt(prefixes.length)];
+    final conn = connectors[random.nextInt(connectors.length)];
+    final numVal = random.nextInt(900) + 100; // 100 to 999
+    final syms = ['!', '?', '#', '\$', '@', '*'];
+    final sym = syms[random.nextInt(6)];
+    
+    final suggestion = '$pfx-$conn-$numVal$sym';
+    setState(() {
+      _newPassController.text = suggestion;
+      _confirmPassController.text = suggestion;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Suggested secure password generated!'), backgroundColor: Colors.green)
+    );
+  }
+
+  Future<bool> _isPasswordReused(String email, String password) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'history_${email.toLowerCase()}';
+      final history = prefs.getStringList(key) ?? [];
+      final hashed = sha256.convert(utf8.encode(password)).toString();
+      return history.contains(hashed);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _savePasswordToHistory(String email, String password) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'history_${email.toLowerCase()}';
+      final history = prefs.getStringList(key) ?? [];
+      final hashed = sha256.convert(utf8.encode(password)).toString();
+      
+      history.insert(0, hashed);
+      if (history.length > 3) {
+        history.removeRange(3, history.length);
+      }
+      await prefs.setStringList(key, history);
+    } catch (_) {}
+  }
 
   Future<void> _submit() async {
     final oldP = _oldPassController.text.trim();
@@ -45,16 +99,25 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       return;
     }
 
+    final email = Session.instance.email ?? '';
+    final reused = await _isPasswordReused(email, newP);
+    if (reused) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Security Alert: Cannot reuse any of your last 3 passwords'), backgroundColor: _maroon));
+      return;
+    }
+
     setState(() => _loading = true);
     try {
       final success = await LocalDb.instance.changePassword(
-        Session.instance.email ?? '',
+        email,
         oldP,
         newP,
       );
 
       if (mounted) {
         if (success) {
+          await _savePasswordToHistory(email, newP);
           ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Password updated successfully')));
           Navigator.pop(context);
@@ -132,7 +195,31 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
   Widget _buildField(String label, TextEditingController controller, bool obscure, VoidCallback? onToggle) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: const TextStyle(color: _text, fontSize: 13, fontWeight: FontWeight.w600)),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: _text, fontSize: 13, fontWeight: FontWeight.w600)),
+          if (label == 'New Password')
+            GestureDetector(
+              onTap: _suggestPassphrase,
+              child: const Row(
+                children: [
+                  Icon(Icons.vpn_key_rounded, color: _gold, size: 12),
+                  SizedBox(width: 4),
+                  Text(
+                    'Suggest Password',
+                    style: TextStyle(
+                      color: _gold,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
       const SizedBox(height: 8),
       Container(
         decoration: BoxDecoration(

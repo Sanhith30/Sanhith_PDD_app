@@ -117,28 +117,84 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
   }
 
+  Future<bool?> _showExitConfirmationDialog() async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: const Color(0xFFFAF7F4),
+          title: const Row(
+            children: [
+              Icon(Icons.exit_to_app_rounded, color: Color(0xFF7B1E3A)),
+              SizedBox(width: 10),
+              Text(
+                'Exit Application',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E0A10)),
+              ),
+            ],
+          ),
+          content: const Text(
+            'Are you sure you want to close Saveetha Oral Sentry?',
+            style: TextStyle(fontSize: 13, color: Color(0xFF1E0A10)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel', style: TextStyle(color: Color(0xFF9E8A8F), fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7B1E3A),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text('Exit', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          backgroundColor: _bg,
-          body: _pages[_currentIndex],
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const NewCasePage()),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+        } else {
+          final shouldExit = await _showExitConfirmationDialog();
+          if (shouldExit == true && context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      child: Stack(
+        children: [
+          Scaffold(
+            backgroundColor: _bg,
+            body: _pages[_currentIndex],
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NewCasePage()),
+              ),
+              backgroundColor: _primary,
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
             ),
-            backgroundColor: _primary,
-            elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
+            floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
+            bottomNavigationBar: _buildBottomNav(),
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
-          bottomNavigationBar: _buildBottomNav(),
-        ),
-        if (_showTour) _buildTourOverlay(),
-      ],
+          if (_showTour) _buildTourOverlay(),
+        ],
+      ),
     );
   }
 

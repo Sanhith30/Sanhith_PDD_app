@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:http/http.dart' as http;
+import 'package:fl_chart/fl_chart.dart';
 import 'db/local_db.dart';
 import 'db/session.dart';
 
-// Profile Page — Overhauled Clinical Credentials & Logs Suite
+// Profile Page — Overhauled Clinical Credentials & Advanced Logs Suite
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -55,6 +57,10 @@ class _ProfilePageState extends State<ProfilePage>
   List<Map<String, dynamic>> _recentCases = [];
   bool _loadingRecent = true;
 
+  // Advanced Credentials state
+  String _licenseNo = 'DCI-98745-A';
+  List<Offset?> _signaturePoints = [];
+
   @override
   void initState() {
     super.initState();
@@ -94,6 +100,23 @@ class _ProfilePageState extends State<ProfilePage>
     final biometric = prefs.getBool('pref_biometric_login') ?? false;
     final autoLock = prefs.getString('pref_auto_lock_time') ?? 'Never';
     final offline = prefs.getBool('pref_offline_mode') ?? false;
+    final license = prefs.getString('pref_license_no') ?? 'DCI-98745-A';
+
+    // Load signature points
+    List<Offset?> sigPoints = [];
+    final sigStr = prefs.getString('pref_signature_data') ?? '';
+    if (sigStr.isNotEmpty) {
+      try {
+        final List<dynamic> decoded = jsonDecode(sigStr);
+        sigPoints = decoded.map((item) {
+          if (item == null || (item is Map && item.containsKey('null'))) {
+            return null;
+          } else {
+            return Offset((item['x'] as num).toDouble(), (item['y'] as num).toDouble());
+          }
+        }).toList();
+      } catch (_) {}
+    }
 
     // Load recent activity log: Sort cases by created_at descending and take top 4
     final sortedRaw = List<Map<String, dynamic>>.from(raw);
@@ -113,6 +136,8 @@ class _ProfilePageState extends State<ProfilePage>
         _biometricLogin = biometric;
         _autoLockTime = autoLock;
         _offlineMode = offline;
+        _licenseNo = license;
+        _signaturePoints = sigPoints;
         _recentCases = recent;
         _loadingRecent = false;
       });
@@ -277,6 +302,89 @@ class _ProfilePageState extends State<ProfilePage>
         _snack('Failed to save profile picture.');
       }
     }
+  }
+
+  pw.Widget _buildPdfSignature() {
+    if (_signaturePoints.isEmpty) {
+      return pw.Container(
+        height: 14,
+        alignment: pw.Alignment.center,
+        child: pw.Text(
+          "NO SIGNATURE SAVED",
+          style: pw.TextStyle(fontSize: 4, color: PdfColors.grey, fontWeight: pw.FontWeight.bold),
+        ),
+      );
+    }
+    
+    double minX = 99999;
+    double maxX = -99999;
+    double minY = 99999;
+    double maxY = -99999;
+    
+    bool hasPoints = false;
+    for (final p in _signaturePoints) {
+      if (p != null) {
+        if (p.dx < minX) minX = p.dx;
+        if (p.dx > maxX) maxX = p.dx;
+        if (p.dy < minY) minY = p.dy;
+        if (p.dy > maxY) maxY = p.dy;
+        hasPoints = true;
+      }
+    }
+    
+    if (!hasPoints) {
+      return pw.Container(
+        height: 14,
+        alignment: pw.Alignment.center,
+        child: pw.Text(
+          "NO SIGNATURE SAVED",
+          style: pw.TextStyle(fontSize: 4, color: PdfColors.grey, fontWeight: pw.FontWeight.bold),
+        ),
+      );
+    }
+    
+    double width = maxX - minX;
+    if (width == 0) width = 1;
+    double height = maxY - minY;
+    if (height == 0) height = 1;
+    
+    double targetWidth = 48.0;
+    double targetHeight = 14.0;
+    double scale = targetWidth / width;
+    if (targetHeight / height < scale) {
+      scale = targetHeight / height;
+    }
+    if (scale > 2.0) scale = 2.0;
+
+    return pw.CustomPaint(
+      size: const PdfPoint(48.0, 14.0),
+      painter: (canvas, size) {
+        canvas.setStrokeColor(const PdfColor.fromInt(0xFF7B1E3A));
+        canvas.setLineWidth(0.8);
+        canvas.setLineCap(PdfLineCap.round);
+        
+        bool isNewStroke = true;
+        PdfPoint lastPoint = const PdfPoint(0, 0);
+        
+        for (final p in _signaturePoints) {
+          if (p == null) {
+            isNewStroke = true;
+          } else {
+            double scaledX = (p.dx - minX) * scale;
+            double scaledY = size.y - ((p.dy - minY) * scale);
+            
+            PdfPoint currentPoint = PdfPoint(scaledX, scaledY);
+            if (!isNewStroke) {
+              canvas.moveTo(lastPoint.x, lastPoint.y);
+              canvas.lineTo(currentPoint.x, currentPoint.y);
+              canvas.strokePath();
+            }
+            lastPoint = currentPoint;
+            isNewStroke = false;
+          }
+        }
+      },
+    );
   }
 
   Future<void> _generateIdBadge() async {
@@ -495,8 +603,10 @@ class _ProfilePageState extends State<ProfilePage>
                               pw.SizedBox(height: 4),
 
                               pw.Row(
+                                crossAxisAlignment: pw.CrossAxisAlignment.end,
                                 children: [
                                   pw.Expanded(
+                                    flex: 6,
                                     child: pw.Column(
                                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                                       children: [
@@ -516,13 +626,7 @@ class _ProfilePageState extends State<ProfilePage>
                                             fontWeight: pw.FontWeight.bold,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                  pw.Expanded(
-                                    child: pw.Column(
-                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                      children: [
+                                        pw.SizedBox(height: 4),
                                         pw.Text(
                                           "CLINICIAN ID",
                                           style: pw.TextStyle(
@@ -536,6 +640,30 @@ class _ProfilePageState extends State<ProfilePage>
                                           style: pw.TextStyle(
                                             color: const PdfColor.fromInt(0xFF1E0A10),
                                             fontSize: 6.5,
+                                            fontWeight: pw.FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  pw.Expanded(
+                                    flex: 5,
+                                    child: pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                                      mainAxisAlignment: pw.MainAxisAlignment.end,
+                                      children: [
+                                        _buildPdfSignature(),
+                                        pw.Container(
+                                          width: 48,
+                                          height: 0.5,
+                                          color: const PdfColor.fromInt(0xFFE8DDD8),
+                                        ),
+                                        pw.SizedBox(height: 1),
+                                        pw.Text(
+                                          "CLINICIAN SIGNATURE",
+                                          style: pw.TextStyle(
+                                            color: const PdfColor.fromInt(0xFF9E8A8F),
+                                            fontSize: 3.5,
                                             fontWeight: pw.FontWeight.bold,
                                           ),
                                         ),
@@ -692,20 +820,47 @@ class _ProfilePageState extends State<ProfilePage>
                     ),
                   ),
                   const SizedBox(height: 14),
-                  Text("DR. ${Session.instance.displayName.toUpperCase()}",
-                      style: const TextStyle(color: Colors.white, fontSize: 20,
-                          fontWeight: FontWeight.w800, letterSpacing: 1.0)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("DR. ${Session.instance.displayName.toUpperCase()}",
+                          style: const TextStyle(color: Colors.white, fontSize: 20,
+                              fontWeight: FontWeight.w800, letterSpacing: 1.0)),
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: _showLicenseDialog,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.verified, color: Colors.blue, size: 18),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _gold.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _gold.withOpacity(0.5)),
+                  GestureDetector(
+                    onTap: _showLicenseDialog,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _gold.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: _gold.withOpacity(0.5)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.shield_outlined, color: _gold, size: 10),
+                          const SizedBox(width: 4),
+                          Text("VERIFIED: $_licenseNo",
+                              style: const TextStyle(color: _gold, fontSize: 9,
+                                  fontWeight: FontWeight.w700, letterSpacing: 1.0)),
+                        ],
+                      ),
                     ),
-                    child: const Text("SENIOR CLINICIAN",
-                        style: TextStyle(color: _gold, fontSize: 9,
-                            fontWeight: FontWeight.w700, letterSpacing: 1.5)),
                   ),
                 ])),
               ),
@@ -716,9 +871,15 @@ class _ProfilePageState extends State<ProfilePage>
             sliver: SliverList(delegate: SliverChildListDelegate([
               _infoCard(),
               const SizedBox(height: 20),
+              _achievementsRow(),
+              const SizedBox(height: 20),
               _badgeCard(),
               const SizedBox(height: 20),
+              _signatureCard(),
+              const SizedBox(height: 20),
               _statsCard(),
+              const SizedBox(height: 20),
+              _recentAnalyticsCard(),
               const SizedBox(height: 20),
               _recentActivityCard(),
               const SizedBox(height: 20),
@@ -762,6 +923,175 @@ class _ProfilePageState extends State<ProfilePage>
       ]),
     ),
   ]);
+
+  Widget _achievementsRow() {
+    final hasBronze = _totalCases >= 1;
+    final hasSilver = _totalCases >= 5;
+    final hasGold = _highRisk >= 2;
+
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "CLINICAL MILESTONES & ACHIEVEMENTS",
+            style: TextStyle(
+              color: _muted,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2.0,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _achievementBadge(
+                icon: Icons.shield_outlined,
+                title: "Screening Rookie",
+                desc: "Complete 1 patient screening assessment to start diagnostic logs.",
+                unlocked: hasBronze,
+                color: const Color(0xFFCD7F32), // Bronze
+              ),
+              _achievementBadge(
+                icon: Icons.emoji_events_outlined,
+                title: "Diagnostic Veteran",
+                desc: "Perform 5 patient assessments to establish historical cases log.",
+                unlocked: hasSilver,
+                color: const Color(0xFFC0C0C0), // Silver
+              ),
+              _achievementBadge(
+                icon: Icons.local_fire_department_outlined,
+                title: "Risk Sentinel",
+                desc: "Accurately flag and review 2 high-risk oral ulcer cases.",
+                unlocked: hasGold,
+                color: _gold, // Gold
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _achievementBadge({
+    required IconData icon,
+    required String title,
+    required String desc,
+    required bool unlocked,
+    required Color color,
+  }) {
+    return GestureDetector(
+      onTap: () => _showAchievementDetail(title, desc, unlocked, color),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: unlocked ? color.withOpacity(0.12) : Colors.black.withOpacity(0.04),
+              border: Border.all(
+                color: unlocked ? color : _border,
+                width: 2.0,
+              ),
+              boxShadow: unlocked
+                  ? [BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, spreadRadius: 1)]
+                  : [],
+            ),
+            child: Icon(
+              icon,
+              color: unlocked ? color : _muted.withOpacity(0.4),
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: TextStyle(
+              color: unlocked ? _text : _muted,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            unlocked ? "UNLOCKED" : "LOCKED",
+            style: TextStyle(
+              color: unlocked ? color : _muted.withOpacity(0.6),
+              fontSize: 8,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAchievementDetail(String title, String desc, bool unlocked, Color color) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.12),
+                ),
+                child: Icon(Icons.emoji_events, color: color, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                desc,
+                style: const TextStyle(fontSize: 12.5, color: _text, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(
+                    unlocked ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+                    color: unlocked ? Colors.green : _muted,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    unlocked ? "Status: Unlocked & Active" : "Status: Locked",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: unlocked ? Colors.green : _muted,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK', style: TextStyle(color: _maroon, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _badgeCard() => _card(
     child: Column(
@@ -842,6 +1172,103 @@ class _ProfilePageState extends State<ProfilePage>
     ),
   );
 
+  Widget _signatureCard() {
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "DIGITAL SIGNATURE",
+                style: TextStyle(
+                  color: _muted,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2.0,
+                ),
+              ),
+              if (_signaturePoints.isNotEmpty)
+                GestureDetector(
+                  onTap: _clearSignature,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _maroon.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      "Reset",
+                      style: TextStyle(color: _maroon, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (_signaturePoints.isEmpty)
+            Container(
+              width: double.infinity,
+              height: 80,
+              decoration: BoxDecoration(
+                color: _bg,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _border, style: BorderStyle.solid),
+              ),
+              child: const Center(
+                child: Text(
+                  "No signature captured yet.",
+                  style: TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+              ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _border),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CustomPaint(
+                  painter: _SignaturePreviewPainter(_signaturePoints),
+                  size: Size.infinite,
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: _showSignatureCanvasDialog,
+              icon: const Icon(Icons.border_color_rounded, color: Colors.white, size: 16),
+              label: Text(
+                _signaturePoints.isEmpty ? "Capture Digital Signature" : "Update Signature",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _maroon,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _statsCard() => _card(
     child: Row(children: [
       _stat(_totalCases.toString(), 'Cases'),
@@ -863,6 +1290,127 @@ class _ProfilePageState extends State<ProfilePage>
   Widget _divider() => Container(
       width: 1, height: 40, color: _border,
       margin: const EdgeInsets.symmetric(horizontal: 8));
+
+  Widget _recentAnalyticsCard() {
+    int lowRiskCount = _totalCases - _highRisk;
+    int highRiskCount = _highRisk;
+    
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "SCREENING RISK PROFILE",
+            style: TextStyle(
+              color: _muted,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2.0,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_totalCases == 0)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  "Screen patients to view risk breakdown charts.",
+                  style: TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+              ),
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: SizedBox(
+                    height: 120,
+                    child: PieChart(
+                      PieChartData(
+                        sectionsSpace: 3,
+                        centerSpaceRadius: 30,
+                        sections: [
+                          PieChartSectionData(
+                            color: _maroon,
+                            value: highRiskCount.toDouble(),
+                            title: '${((highRiskCount / _totalCases) * 100).toStringAsFixed(0)}%',
+                            radius: 24,
+                            titleStyle: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          PieChartSectionData(
+                            color: _gold,
+                            value: lowRiskCount.toDouble(),
+                            title: '${((lowRiskCount / _totalCases) * 100).toStringAsFixed(0)}%',
+                            radius: 24,
+                            titleStyle: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 6,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _chartLegend(_maroon, "High Risk", "$highRiskCount cases"),
+                      const SizedBox(height: 10),
+                      _chartLegend(_gold, "Low/Int. Risk", "$lowRiskCount cases"),
+                      const Divider(height: 20),
+                      Text(
+                        "Total Screenings: $_totalCases",
+                        style: const TextStyle(
+                          color: _text,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chartLegend(Color color, String label, String value) {
+    return Row(
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(color: _text, fontSize: 11, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
 
   Widget _recentActivityCard() {
     return _card(
@@ -1218,4 +1766,307 @@ class _ProfilePageState extends State<ProfilePage>
     ),
     child: child,
   );
+
+  Future<void> _showLicenseDialog() async {
+    final ctrl = TextEditingController(text: _licenseNo);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.verified_user_outlined, color: _maroon),
+              SizedBox(width: 10),
+              Text('Dental Council Credentials', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Verify your professional license number issued by the Dental Council of India (DCI) or your local regulatory authority.',
+                style: TextStyle(fontSize: 12, color: _muted),
+              ),
+              const SizedBox(height: 16),
+              const Text('License Registration No.', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _maroon)),
+              const SizedBox(height: 6),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F3F0),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _border),
+                ),
+                child: TextField(
+                  controller: ctrl,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    hintText: 'e.g. DCI-98745-A',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(Icons.verified, color: Colors.blue, size: 16),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Verified by Saveetha Dental College registry on ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}.',
+                      style: const TextStyle(fontSize: 10, color: _muted, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: _muted)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final text = ctrl.text.trim();
+                if (text.isNotEmpty) {
+                  final navigator = Navigator.of(context);
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('pref_license_no', text);
+                  if (!mounted) return;
+                  setState(() {
+                    _licenseNo = text;
+                  });
+                  navigator.pop();
+                  _snack('Registration credentials updated!');
+                  _loadStats();
+                } else {
+                  _snack('Registration number cannot be empty.');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _maroon,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text('Update', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showSignatureCanvasDialog() async {
+    final List<Offset?> drawPoints = [];
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(
+                children: [
+                  Icon(Icons.border_color_rounded, color: _maroon),
+                  SizedBox(width: 10),
+                  Text('Capture Signature', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Draw your signature inside the box below using your finger or stylus.',
+                    style: TextStyle(fontSize: 12, color: _muted),
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.maxFinite,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBF8F5),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: _border),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: GestureDetector(
+                        onPanStart: (details) {
+                          setDialogState(() {
+                            drawPoints.add(details.localPosition);
+                          });
+                        },
+                        onPanUpdate: (details) {
+                          setDialogState(() {
+                            drawPoints.add(details.localPosition);
+                          });
+                        },
+                        onPanEnd: (details) {
+                          setDialogState(() {
+                            drawPoints.add(null);
+                          });
+                        },
+                        child: CustomPaint(
+                          painter: _CanvasPainter(drawPoints),
+                          size: Size.infinite,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel', style: TextStyle(color: _muted)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setDialogState(() {
+                      drawPoints.clear();
+                    });
+                  },
+                  child: const Text('Clear', style: TextStyle(color: _maroon, fontWeight: FontWeight.bold)),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (drawPoints.isEmpty) {
+                      _snack('Please sign inside the canvas first.');
+                      return;
+                    }
+                    
+                    final List<Map<String, double>> serialized = [];
+                    for (final p in drawPoints) {
+                      if (p == null) {
+                        serialized.add({'null': 1.0});
+                      } else {
+                        serialized.add({'x': p.dx, 'y': p.dy});
+                      }
+                    }
+                    
+                    final navigator = Navigator.of(context);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('pref_signature_data', jsonEncode(serialized));
+                    
+                    if (!mounted) return;
+                    setState(() {
+                      _signaturePoints = drawPoints;
+                    });
+                    
+                    navigator.pop();
+                    _snack('Digital signature saved successfully!');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _maroon,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Save Signature', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _clearSignature() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('pref_signature_data');
+    if (!mounted) return;
+    setState(() {
+      _signaturePoints = [];
+    });
+    _snack('Signature cleared.');
+  }
+}
+
+class _SignaturePreviewPainter extends CustomPainter {
+  final List<Offset?> points;
+  _SignaturePreviewPainter(this.points);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.isEmpty) return;
+
+    double minX = 99999;
+    double maxX = -99999;
+    double minY = 99999;
+    double maxY = -99999;
+    
+    bool hasPoints = false;
+    for (final p in points) {
+      if (p != null) {
+        if (p.dx < minX) minX = p.dx;
+        if (p.dx > maxX) maxX = p.dx;
+        if (p.dy < minY) minY = p.dy;
+        if (p.dy > maxY) maxY = p.dy;
+        hasPoints = true;
+      }
+    }
+    
+    if (!hasPoints) return;
+    
+    double width = maxX - minX;
+    if (width == 0) width = 1;
+    double height = maxY - minY;
+    if (height == 0) height = 1;
+    
+    double padding = 15.0;
+    double targetWidth = size.width - (padding * 2);
+    double targetHeight = size.height - (padding * 2);
+    
+    double scale = targetWidth / width;
+    if (targetHeight / height < scale) {
+      scale = targetHeight / height;
+    }
+    if (scale > 3.0) scale = 3.0;
+
+    final paint = Paint()
+      ..color = const Color(0xFF7B1E3A)
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 2.5;
+
+    for (int i = 0; i < points.length - 1; i++) {
+      if (points[i] != null && points[i + 1] != null) {
+        double x1 = padding + (points[i]!.dx - minX) * scale;
+        double y1 = padding + (points[i]!.dy - minY) * scale;
+        double x2 = padding + (points[i + 1]!.dx - minX) * scale;
+        double y2 = padding + (points[i + 1]!.dy - minY) * scale;
+        
+        canvas.drawLine(Offset(x1, y1), Offset(x2, y2), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SignaturePreviewPainter oldDelegate) => true;
+}
+
+class _CanvasPainter extends CustomPainter {
+  final List<Offset?> points;
+  _CanvasPainter(this.points);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF7B1E3A)
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 3.0;
+
+    for (int i = 0; i < points.length - 1; i++) {
+      if (points[i] != null && points[i + 1] != null) {
+        canvas.drawLine(points[i]!, points[i + 1]!, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CanvasPainter oldDelegate) => true;
 }

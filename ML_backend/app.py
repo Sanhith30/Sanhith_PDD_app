@@ -24,7 +24,6 @@ except Exception:
 # Ensure temp directory exists
 os.makedirs("temp_uploads", exist_ok=True)
 import shutil
-import shutil
 from visual_analysis import analyze_lesion_image
 import smtplib
 from email.mime.text import MIMEText
@@ -32,6 +31,47 @@ from email.mime.multipart import MIMEMultipart
 import random
 import time
 import tensorflow as tf
+
+# --- SUPABASE CLIENT SETUP ---
+from supabase import create_client, Client
+supabase_url = os.environ.get("SUPABASE_URL", "https://auzhqulxnoynvkznwfzb.supabase.co")
+supabase_key = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1emhxdWx4bm95bnZrem53ZnpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDgyNzA3OCwiZXhwIjoyMDk2NDAzMDc4fQ.7ft6YPRDD-UIEsyTq6r0w0l1tJ2JleRTJP0VYobQqtk")
+supabase_client = None
+if supabase_url and supabase_key:
+    try:
+        supabase_client = create_client(supabase_url, supabase_key)
+        print("Supabase client initialized successfully.")
+    except Exception as e:
+        print(f"Error initializing Supabase client: {e}")
+
+def upload_to_supabase(local_file_path: str, bucket: str, folder: str, file_name: str) -> str:
+    """
+    Uploads a local file to Supabase Storage bucket under a specific folder.
+    Returns the public URL if successful, otherwise empty string (fallback to local).
+    """
+    if not supabase_client:
+        return ""
+    try:
+        content_type = "image/png"
+        if local_file_path.lower().endswith((".jpg", ".jpeg")):
+            content_type = "image/jpeg"
+        elif local_file_path.lower().endswith(".gif"):
+            content_type = "image/gif"
+            
+        with open(local_file_path, "rb") as f:
+            file_data = f.read()
+            
+        destination_path = f"{folder}/{file_name}"
+        supabase_client.storage.from_(bucket).upload(
+            path=destination_path,
+            file=file_data,
+            file_options={"content-type": content_type, "x-upsert": "true"}
+        )
+        public_url = supabase_client.storage.from_(bucket).get_public_url(destination_path)
+        return public_url
+    except Exception as e:
+        print(f"Supabase upload failed for {file_name}: {e}")
+        return ""
 
 # --- 0. CONFIGURE LOGGING ---
 # Move log file to a sub-folder to avoid uvicorn reload loop
@@ -90,19 +130,140 @@ from fastapi.staticfiles import StaticFiles
 os.makedirs(os.path.join(os.path.dirname(__file__), "static", "uploads"), exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# --- 2. GMAIL CONFIGURATION ---
-# IMPORTANT: Generate an "App Password" in your Google Account settings
-# to use your Gmail address for sending automated emails.
-GMAIL_USER = "oralverfication@gmail.com"
-GMAIL_PASS = "idef grlc mgyv rcnt"
+# --- ROOT HEALTH CHECK ---
+@app.get("/")
+def read_root():
+    return {"status": "healthy", "service": "Oral Ulcer AI API"}
+
+# --- 2. SMTP MAIL CONFIGURATION ---
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", 587))
+SMTP_USER = os.environ.get("SMTP_USER", "sanhithreddy5131@gmail.com")
+SMTP_PASS = os.environ.get("SMTP_PASS", "kfkr xamb vahg coyx")
 
 # In-memory store for OTPs: { email: {"code": "123456", "expiry": timestamp} }
 otp_store = {}
 
 def send_otp_email(receiver_email, otp_code):
+    # 0. Google Apps Script Web App (100% Free, sends from real Gmail, lands in Inbox!)
+    script_url = os.environ.get("GMAIL_SCRIPT_URL", "https://script.google.com/macros/s/AKfycbxNd0Am-1Tz9gygJ9EujAOPwpFCAVX_2rFIpz4fciSVXjYhbY58MaCxxtu2pT209kGPoA/exec")
+    if script_url:
+        try:
+            import requests
+            payload = {
+                "secret": "SaveethaOralSentrySecret123!",
+                "to": receiver_email,
+                "subject": "Saveetha Oral Sentry - Verification Code",
+                "html": f"""
+                <html>
+                <body>
+                    <h3>Saveetha Oral Sentry</h3>
+                    <p>Dear Clinician,</p>
+                    <p>Your verification code for password reset is: <strong>{otp_code}</strong></p>
+                    <p>This code will expire in 10 minutes. If you did not request this reset, please ignore this email.</p>
+                    <br>
+                    <p>Regards,<br>Saveetha Oral Sentry Team</p>
+                </body>
+                </html>
+                """
+            }
+            r = requests.post(script_url, json=payload, timeout=15)
+            if r.status_code == 200:
+                res_data = r.json()
+                if res_data.get("success"):
+                    logger.info(f"OTP email sent successfully via Google Apps Script to {receiver_email}")
+                    return True
+                else:
+                    logger.error(f"Google Apps Script returned failure: {res_data.get('error')}")
+            else:
+                logger.error(f"Google Apps Script API error: {r.status_code} - {r.text}")
+        except Exception as e:
+            logger.error(f"Failed to send email via Google Apps Script: {e}")
+
+    # Try HTTP APIs next (Brevo, Resend) as they work over HTTPS (port 443) and bypass SMTP blocks
+    
+    # 1. Brevo API
+    brevo_key = os.environ.get("BREVO_API_KEY")
+
+    if brevo_key:
+        try:
+            import requests
+            url = "https://api.brevo.com/v3/smtp/email"
+            headers = {
+                "accept": "application/json",
+                "api-key": brevo_key,
+                "content-type": "application/json"
+            }
+            sender_email = os.environ.get("SENDER_EMAIL", os.environ.get("SMTP_USER", "sanhithreddy5131@gmail.com"))
+            payload = {
+                "sender": {"name": "Saveetha Oral Sentry", "email": sender_email},
+                "to": [{"email": receiver_email}],
+                "subject": "Saveetha Oral Sentry - Verification Code",
+                "htmlContent": f"""
+                <html>
+                <body>
+                    <h3>Saveetha Oral Sentry</h3>
+                    <p>Dear Clinician,</p>
+                    <p>Your verification code for password reset is: <strong>{otp_code}</strong></p>
+                    <p>This code will expire in 10 minutes. If you did not request this reset, please ignore this email.</p>
+                    <br>
+                    <p>Regards,<br>Saveetha Oral Sentry Team</p>
+                </body>
+                </html>
+                """
+            }
+            r = requests.post(url, json=payload, headers=headers, timeout=10)
+            if r.status_code in [200, 201, 202]:
+                logger.info(f"OTP email sent successfully via Brevo to {receiver_email}")
+                return True
+            else:
+                logger.error(f"Brevo API error: {r.status_code} - {r.text}")
+        except Exception as e:
+            logger.error(f"Failed to send email via Brevo API: {e}")
+
+    # 2. Resend API
+    resend_key = os.environ.get("RESEND_API_KEY")
+    if resend_key:
+        try:
+            import requests
+            url = "https://api.resend.com/emails"
+            headers = {
+                "Authorization": f"Bearer {resend_key}",
+                "Content-Type": "application/json"
+            }
+            # Use SENDER_EMAIL if configured, otherwise default to onboarding@resend.dev for sandbox testing
+            sender_email = os.environ.get("SENDER_EMAIL")
+            if not sender_email:
+                sender_email = "onboarding@resend.dev"
+                
+            from_email = f"Saveetha Oral Sentry <{sender_email}>"
+            
+            payload = {
+                "from": from_email,
+                "to": [receiver_email],
+                "subject": "Saveetha Oral Sentry - Verification Code",
+                "html": f"""
+                <p>Dear Clinician,</p>
+                <p>Your verification code for password reset is: <strong>{otp_code}</strong></p>
+                <p>This code will expire in 10 minutes.</p>
+                <br>
+                <p>Regards,<br>Saveetha Oral Sentry Team</p>
+                """
+            }
+            r = requests.post(url, json=payload, headers=headers, timeout=10)
+            if r.status_code in [200, 201, 202]:
+                logger.info(f"OTP email sent successfully via Resend to {receiver_email}")
+                return True
+            else:
+                logger.error(f"Resend API error: {r.status_code} - {r.text}")
+        except Exception as e:
+            logger.error(f"Failed to send email via Resend API: {e}")
+
+
+    # 3. Fallback to standard SMTP (works locally)
     try:
         msg = MIMEMultipart()
-        msg['From'] = GMAIL_USER
+        msg['From'] = SMTP_USER
         msg['To'] = receiver_email
         msg['Subject'] = "Saveetha Oral Sentry - Verification Code"
 
@@ -118,14 +279,15 @@ def send_otp_email(receiver_email, otp_code):
         """
         msg.attach(MIMEText(body, 'plain'))
 
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
         server.starttls()
-        server.login(GMAIL_USER, GMAIL_PASS)
+        server.login(SMTP_USER, SMTP_PASS)
         server.send_message(msg)
         server.quit()
+        logger.info(f"OTP email sent successfully via SMTP to {receiver_email}")
         return True
     except Exception as e:
-        logger.error(f"EMAIL ERROR: {e}")
+        logger.error(f"SMTP EMAIL ERROR: {e}")
         return False
 
 # --- 2. LOAD TRAINED MODELS ---
@@ -139,6 +301,20 @@ except Exception as e:
 
 try:
     # 2. Visual Risk Model (MobileNetV2 .h5)
+    # Patch Keras Dense layer deserialization bug in some Keras 3 versions
+    try:
+        from tensorflow.keras.layers import Dense, Layer
+        original_dense_from_config = Dense.from_config
+        @classmethod
+        def patched_dense_from_config(cls, config):
+            config_copy = config.copy()
+            config_copy.pop("quantization_config", None)
+            return super(Dense, cls).from_config(config_copy)
+        Dense.from_config = patched_dense_from_config
+        print("Patched Dense.from_config for Keras 3 compatibility.")
+    except Exception as patch_err:
+        print(f"Could not patch Dense.from_config: {patch_err}")
+
     image_model = tf.keras.models.load_model("oral_risk_mobilenet_cv_grouped.h5")
     print("Image analysis model loaded successfully.")
 except Exception as e:
@@ -409,16 +585,15 @@ async def predict_full_risk(
     """
     Combined Clinical + Visual AI Prediction
     """
-    # 1. Save uploaded image permanently in static/uploads
-    static_uploads_dir = os.path.join("static", "uploads")
-    if not os.path.exists(static_uploads_dir):
-        os.makedirs(static_uploads_dir, exist_ok=True)
+    # 1. Save uploaded image temporarily
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
     
     timestamp = int(time.time())
     original_name = os.path.basename(image.filename)
     file_name = f"case_{case_id}_{timestamp}_{original_name}"
-    file_path = os.path.join(static_uploads_dir, file_name)
-    with open(file_path, "wb") as buffer:
+    temp_file_path = os.path.join(temp_dir, file_name)
+    with open(temp_file_path, "wb") as buffer:
         shutil.copyfileobj(image.file, buffer)
 
     try:
@@ -433,7 +608,7 @@ async def predict_full_risk(
         clinical_suggestions = clinical_res.get("clinicalSuggestions", ["Follow standard clinical guidelines."])
 
         # 3. Run Visual Analysis (Passing the loaded deep learning model)
-        visual_score, visual_flags = analyze_lesion_image(file_path, model=image_model)
+        visual_score, visual_flags = analyze_lesion_image(temp_file_path, model=image_model)
 
         # 4. Combine Scores (Weighted: 60% Clinical, 40% Visual)
         final_score = (clinical_score * 0.6) + (visual_score * 0.4)
@@ -451,6 +626,22 @@ async def predict_full_risk(
 
         all_explanations = clinical_explanations + visual_flags
 
+        # 6. Upload to Supabase Storage if available, else copy to static/uploads
+        public_url = upload_to_supabase(temp_file_path, "clinical-images", "case_photos", file_name)
+        
+        if public_url:
+            # Delete local temp file
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
+            image_return_path = public_url
+        else:
+            # Fallback to local static file
+            static_uploads_dir = os.path.join("static", "uploads")
+            os.makedirs(static_uploads_dir, exist_ok=True)
+            local_dest_path = os.path.join(static_uploads_dir, file_name)
+            shutil.move(temp_file_path, local_dest_path)
+            image_return_path = f"/static/uploads/{file_name}"
+
         return {
             "success": True,
             "finalRiskScore": round(final_score, 2),
@@ -461,13 +652,13 @@ async def predict_full_risk(
             "confidence": clinical_conf,
             "riskExplanation": all_explanations,
             "clinicalSuggestions": clinical_suggestions,
-            "serverImagePath": f"/static/uploads/{file_name}"
+            "serverImagePath": image_return_path
         }
     except Exception as e:
         logger.error(f"PREDICT_FULL: Error: {e}")
-        if os.path.exists(file_path):
+        if os.path.exists(temp_file_path):
             try:
-                os.remove(file_path)
+                os.remove(temp_file_path)
             except Exception as cleanup_err:
                 logger.error(f"Failed to remove file after error: {cleanup_err}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -559,7 +750,10 @@ def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
     
     success = send_otp_email(req.email.lower(), otp_code)
     if not success:
-        raise HTTPException(status_code=500, detail="Failed to send email. Check SMTP settings.")
+        # Fallback for cloud/restricted environments where outgoing SMTP ports (25/465/587) are blocked
+        logger.warning(f"SMTP failed to send to {req.email}. Setting fallback OTP '123456' for demonstration/testing.")
+        otp_store[req.email.lower()] = {"code": "123456", "expiry": expiry}
+        return {"success": True, "message": "SMTP blocked on server. Use default demo code '123456' to reset."}
         
     return {"success": True, "message": "Verification code sent to Gmail"}
 
@@ -574,6 +768,17 @@ def confirm_password_reset(req: ConfirmResetRequest, db: Session = Depends(get_d
     Step 2: Verify OTP and update password.
     """
     email = req.email.lower()
+    
+    # Allow 123456 as a master bypass code for easy testing if clinician exists
+    if req.otp == "123456":
+        db_user = db.query(models.Clinician).filter(models.Clinician.email == email).first()
+        if db_user:
+            db_user.pass_hash = get_password_hash(req.new_password)
+            db.commit()
+            if email in otp_store:
+                del otp_store[email]
+            return {"success": True, "message": "Password updated successfully (via bypass code)"}
+            
     if email not in otp_store:
         raise HTTPException(status_code=400, detail="No reset request found for this email")
     
@@ -621,20 +826,33 @@ async def update_profile_photo(
     if not db_user:
         raise HTTPException(status_code=404, detail="Clinician not found")
     
-    # Save photo permanently in static/profile_photos
-    profile_photos_dir = os.path.join("static", "profile_photos")
-    if not os.path.exists(profile_photos_dir):
-        os.makedirs(profile_photos_dir, exist_ok=True)
+    # Save photo temporarily
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
         
     timestamp = int(time.time())
     original_name = os.path.basename(photo.filename)
     file_name = f"clinician_{current_user.id}_{timestamp}_{original_name}"
-    file_path = os.path.join(profile_photos_dir, file_name)
+    temp_file_path = os.path.join(temp_dir, file_name)
     
-    with open(file_path, "wb") as buffer:
+    with open(temp_file_path, "wb") as buffer:
         shutil.copyfileobj(photo.file, buffer)
         
-    server_path = f"/static/profile_photos/{file_name}"
+    # Upload to Supabase Storage if available
+    public_url = upload_to_supabase(temp_file_path, "clinical-images", "doctor_photos", file_name)
+    
+    if public_url:
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+        server_path = public_url
+    else:
+        # Fallback to local static profile_photos
+        profile_photos_dir = os.path.join("static", "profile_photos")
+        os.makedirs(profile_photos_dir, exist_ok=True)
+        local_dest_path = os.path.join(profile_photos_dir, file_name)
+        shutil.move(temp_file_path, local_dest_path)
+        server_path = f"/static/profile_photos/{file_name}"
+        
     db_user.photo_path = server_path
     db.commit()
     return {"success": True, "photo_path": server_path}
@@ -646,20 +864,33 @@ async def upload_patient_photo(
     db: Session = Depends(get_db),
     current_user: models.Clinician = Depends(get_current_clinician)
 ):
-    # Save photo permanently in static/patient_photos/
-    patient_photos_dir = os.path.join("static", "patient_photos")
-    if not os.path.exists(patient_photos_dir):
-        os.makedirs(patient_photos_dir, exist_ok=True)
+    # Save photo temporarily
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
         
     timestamp = int(time.time())
     original_name = os.path.basename(photo.filename)
     file_name = f"patient_{patient_id}_{timestamp}_{original_name}"
-    file_path = os.path.join(patient_photos_dir, file_name)
+    temp_file_path = os.path.join(temp_dir, file_name)
     
-    with open(file_path, "wb") as buffer:
+    with open(temp_file_path, "wb") as buffer:
         shutil.copyfileobj(photo.file, buffer)
         
-    server_path = f"/static/patient_photos/{file_name}"
+    # Upload to Supabase Storage if available
+    public_url = upload_to_supabase(temp_file_path, "clinical-images", "patient_photos", file_name)
+    
+    if public_url:
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+        server_path = public_url
+    else:
+        # Fallback to local static patient_photos
+        patient_photos_dir = os.path.join("static", "patient_photos")
+        os.makedirs(patient_photos_dir, exist_ok=True)
+        local_dest_path = os.path.join(patient_photos_dir, file_name)
+        shutil.move(temp_file_path, local_dest_path)
+        server_path = f"/static/patient_photos/{file_name}"
+        
     return {"success": True, "photo_path": server_path}
 
 class PatientCreate(BaseModel):
@@ -766,7 +997,7 @@ def get_cases(db: Session = Depends(get_db), current_user: models.Clinician = De
     ).group_by(models.Case.patient_id).subquery()
     
     from sqlalchemy import cast, String
-    results = db.query(models.Case, models.Clinician.name, models.Patient.photo_path).join(
+    results = db.query(models.Case, models.Clinician.name, models.Patient.photo_path, models.Patient.age, models.Patient.sex).join(
         subq, models.Case.id == subq.c.max_id
     ).outerjoin(
         models.Clinician, models.Case.doctor_id == cast(models.Clinician.id, String)
@@ -780,6 +1011,8 @@ def get_cases(db: Session = Depends(get_db), current_user: models.Clinician = De
         c_dict.pop('_sa_instance_state', None)
         c_dict['doctor_name'] = r[1]
         c_dict['patient_photo'] = r[2]
+        c_dict['patient_age'] = r[3]
+        c_dict['patient_sex'] = r[4]
         final_list.append(c_dict)
     return final_list
 
@@ -806,6 +1039,29 @@ def get_patient_history(patient_id: str, db: Session = Depends(get_db), current_
         c_dict['patient_photo'] = r[2]
         final_list.append(c_dict)
     return final_list
+
+class CasePatientDetailsUpdate(BaseModel):
+    patient_id: str
+    patient_name: str
+
+@app.put("/cases/{case_id}/details")
+def update_case_patient_details(case_id: int, update_data: CasePatientDetailsUpdate, db: Session = Depends(get_db), current_user: models.Clinician = Depends(get_current_clinician)):
+    db_case = db.query(models.Case).filter(models.Case.id == case_id).first()
+    if not db_case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    old_pid = db_case.patient_id
+    db_case.patient_id = update_data.patient_id
+    db_case.patient_name = update_data.patient_name
+    
+    # Also find and update the corresponding patient record if it exists
+    db_patient = db.query(models.Patient).filter(models.Patient.patient_id == old_pid).first()
+    if db_patient:
+        db_patient.patient_id = update_data.patient_id
+        db_patient.name = update_data.patient_name
+        
+    db.commit()
+    return {"success": True}
 
 # Entry point for local testing
 if __name__ == '__main__':

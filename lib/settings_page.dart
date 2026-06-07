@@ -320,12 +320,12 @@ class _SettingsPageState extends State<SettingsPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Enter the local IP address and port of your PC backend server:', style: TextStyle(fontSize: 12.5)),
+            const Text('Enter your FastAPI backend server URL (e.g. Hugging Face Space URL or local IP for testing):', style: TextStyle(fontSize: 12.5)),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
               decoration: InputDecoration(
-                hintText: 'http://10.37.145.87:5000',
+                hintText: 'https://sanhith30-oral-ulcer-ai-backend.hf.space',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
@@ -337,6 +337,12 @@ class _SettingsPageState extends State<SettingsPage>
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel', style: TextStyle(color: _muted)),
+          ),
+          TextButton(
+            onPressed: () {
+              controller.text = 'https://sanhith30-oral-ulcer-ai-backend.hf.space';
+            },
+            child: const Text('Reset to Default', style: TextStyle(color: Colors.blue)),
           ),
           TextButton(
             onPressed: () async {
@@ -531,11 +537,13 @@ class _SettingsPageState extends State<SettingsPage>
         child: CustomScrollView(slivers: [
           SliverAppBar(
             pinned: true, backgroundColor: _maroon, elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white, size: 18),
-              onPressed: () => Navigator.pop(context),
-            ),
+            leading: Navigator.canPop(context)
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white, size: 18),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                : null,
             title: const Text('Settings',
                 style: TextStyle(color: Colors.white, fontSize: 17,
                     fontWeight: FontWeight.w600)),

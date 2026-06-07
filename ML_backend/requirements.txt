@@ -9,4 +9,8 @@ psycopg2-binary
 PyJWT
 passlib[bcrypt]
 tensorflow-cpu
-pillow
+pillow
+supabase
+opencv-python-headless
+python-multipart
+requests
