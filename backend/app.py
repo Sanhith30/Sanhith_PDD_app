@@ -158,47 +158,8 @@ SMTP_PASS = os.environ.get("SMTP_PASS")
 otp_store = {}
 
 def send_otp_email(receiver_email, otp_code):
-    # 0. Google Apps Script Web App (100% Free, sends from real Gmail, lands in Inbox!)
-    script_url = os.environ.get("GMAIL_SCRIPT_URL")
-    if script_url:
-        try:
-            import requests
-            payload = {
-                "secret": os.environ.get("GMAIL_SCRIPT_SECRET", "SaveethaOralSentrySecret123!"),
-                "to": receiver_email,
-                "subject": "Saveetha Oral Sentry - Verification Code",
-                "html": f"""
-                <html>
-                <body>
-                    <h3>Saveetha Oral Sentry</h3>
-                    <p>Dear Clinician,</p>
-                    <p>Your verification code for password reset is: <strong>{otp_code}</strong></p>
-                    <p>This code will expire in 10 minutes. If you did not request this reset, please ignore this email.</p>
-                    <br>
-                    <p>Regards,<br>Saveetha Oral Sentry Team</p>
-                </body>
-                </html>
-                """
-            }
-
-            r = requests.post(script_url, json=payload, timeout=15)
-            if r.status_code == 200:
-                res_data = r.json()
-                if res_data.get("success"):
-                    logger.info(f"OTP email sent successfully via Google Apps Script to {receiver_email}")
-                    return True
-                else:
-                    logger.error(f"Google Apps Script returned failure: {res_data.get('error')}")
-            else:
-                logger.error(f"Google Apps Script API error: {r.status_code} - {r.text}")
-        except Exception as e:
-            logger.error(f"Failed to send email via Google Apps Script: {e}")
-
-    # Try HTTP APIs next (Brevo, Resend) as they work over HTTPS (port 443) and bypass SMTP blocks
-    
-    # 1. Brevo API
+    # 1. Try Brevo API first (Recommended: fast, over HTTPS, bypasses SMTP blocks)
     brevo_key = os.environ.get("BREVO_API_KEY")
-
     if brevo_key:
         try:
             import requests
@@ -226,7 +187,7 @@ def send_otp_email(receiver_email, otp_code):
                 </html>
                 """
             }
-            r = requests.post(url, json=payload, headers=headers, timeout=10)
+            r = requests.post(url, json=payload, headers=headers, timeout=5)
             if r.status_code in [200, 201, 202]:
                 logger.info(f"OTP email sent successfully via Brevo to {receiver_email}")
                 return True
@@ -235,7 +196,77 @@ def send_otp_email(receiver_email, otp_code):
         except Exception as e:
             logger.error(f"Failed to send email via Brevo API: {e}")
 
-    # 2. Resend API
+    # 2. Try Standard SMTP second (works locally, low timeout to prevent hanging on cloud)
+    smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASS")
+    if smtp_user and smtp_pass:
+        try:
+            msg = MIMEMultipart()
+            msg['From'] = smtp_user
+            msg['To'] = receiver_email
+            msg['Subject'] = "Saveetha Oral Sentry - Verification Code"
+
+            body = f"""
+            Dear Clinician,
+
+            Your verification code for password reset is: {otp_code}
+
+            This code will expire in 10 minutes. If you did not request this reset, please ignore this email.
+
+            Regards,
+            Saveetha Oral Sentry Team
+            """
+            msg.attach(MIMEText(body, 'plain'))
+
+            server = smtplib.SMTP(smtp_host, smtp_port, timeout=3)
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+            server.quit()
+            logger.info(f"OTP email sent successfully via SMTP to {receiver_email}")
+            return True
+        except Exception as e:
+            logger.error(f"SMTP EMAIL ERROR: {e}")
+
+    # 3. Google Apps Script Web App (Third fallback, low timeout)
+    script_url = os.environ.get("GMAIL_SCRIPT_URL")
+    if script_url:
+        try:
+            import requests
+            payload = {
+                "secret": os.environ.get("GMAIL_SCRIPT_SECRET", "SaveethaOralSentrySecret123!"),
+                "to": receiver_email,
+                "subject": "Saveetha Oral Sentry - Verification Code",
+                "html": f"""
+                <html>
+                <body>
+                    <h3>Saveetha Oral Sentry</h3>
+                    <p>Dear Clinician,</p>
+                    <p>Your verification code for password reset is: <strong>{otp_code}</strong></p>
+                    <p>This code will expire in 10 minutes. If you did not request this reset, please ignore this email.</p>
+                    <br>
+                    <p>Regards,<br>Saveetha Oral Sentry Team</p>
+                </body>
+                </html>
+                """
+            }
+
+            r = requests.post(script_url, json=payload, timeout=3)
+            if r.status_code == 200:
+                res_data = r.json()
+                if res_data.get("success"):
+                    logger.info(f"OTP email sent successfully via Google Apps Script to {receiver_email}")
+                    return True
+                else:
+                    logger.error(f"Google Apps Script returned failure: {res_data.get('error')}")
+            else:
+                logger.error(f"Google Apps Script API error: {r.status_code} - {r.text}")
+        except Exception as e:
+            logger.error(f"Failed to send email via Google Apps Script: {e}")
+
+    # 4. Resend API (Fourth fallback, low timeout)
     resend_key = os.environ.get("RESEND_API_KEY")
     if resend_key:
         try:
@@ -245,7 +276,6 @@ def send_otp_email(receiver_email, otp_code):
                 "Authorization": f"Bearer {resend_key}",
                 "Content-Type": "application/json"
             }
-            # Use SENDER_EMAIL if configured, otherwise default to onboarding@resend.dev for sandbox testing
             sender_email = os.environ.get("SENDER_EMAIL")
             if not sender_email:
                 sender_email = "onboarding@resend.dev"
@@ -264,7 +294,7 @@ def send_otp_email(receiver_email, otp_code):
                 <p>Regards,<br>Saveetha Oral Sentry Team</p>
                 """
             }
-            r = requests.post(url, json=payload, headers=headers, timeout=10)
+            r = requests.post(url, json=payload, headers=headers, timeout=3)
             if r.status_code in [200, 201, 202]:
                 logger.info(f"OTP email sent successfully via Resend to {receiver_email}")
                 return True
@@ -273,36 +303,7 @@ def send_otp_email(receiver_email, otp_code):
         except Exception as e:
             logger.error(f"Failed to send email via Resend API: {e}")
 
-
-    # 3. Fallback to standard SMTP (works locally)
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = SMTP_USER
-        msg['To'] = receiver_email
-        msg['Subject'] = "Saveetha Oral Sentry - Verification Code"
-
-        body = f"""
-        Dear Clinician,
-
-        Your verification code for password reset is: {otp_code}
-
-        This code will expire in 10 minutes. If you did not request this reset, please ignore this email.
-
-        Regards,
-        Saveetha Oral Sentry Team
-        """
-        msg.attach(MIMEText(body, 'plain'))
-
-        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASS)
-        server.send_message(msg)
-        server.quit()
-        logger.info(f"OTP email sent successfully via SMTP to {receiver_email}")
-        return True
-    except Exception as e:
-        logger.error(f"SMTP EMAIL ERROR: {e}")
-        return False
+    return False
 
 # --- 2. LOAD TRAINED MODELS ---
 try:
@@ -782,16 +783,6 @@ def confirm_password_reset(req: ConfirmResetRequest, db: Session = Depends(get_d
     Step 2: Verify OTP and update password.
     """
     email = req.email.lower()
-    
-    # Allow 123456 as a master bypass code for easy testing if clinician exists
-    if req.otp == "123456":
-        db_user = db.query(models.Clinician).filter(models.Clinician.email == email).first()
-        if db_user:
-            db_user.pass_hash = get_password_hash(req.new_password)
-            db.commit()
-            if email in otp_store:
-                del otp_store[email]
-            return {"success": True, "message": "Password updated successfully (via bypass code)"}
             
     if email not in otp_store:
         raise HTTPException(status_code=400, detail="No reset request found for this email")
