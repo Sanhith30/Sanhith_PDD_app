@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'session.dart';
@@ -18,6 +19,12 @@ class LocalDb {
     if (_dynamicBaseUrl != null && _dynamicBaseUrl!.isNotEmpty) {
       return _dynamicBaseUrl!;
     }
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return 'http://localhost:5000';
+      }
+    }
     return 'https://sanhith30-oral-ulcer-ai-backend.hf.space'; // fallback
   }
 
@@ -25,18 +32,9 @@ class LocalDb {
     try {
       final prefs = await SharedPreferences.getInstance();
       _dynamicBaseUrl = prefs.getString('server_base_url');
-      // Automigrate/reset any old development IP configurations or localhost to the production URL
-      if (_dynamicBaseUrl != null) {
-        final hasIp = RegExp(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}').hasMatch(_dynamicBaseUrl!);
-        if (hasIp ||
-            _dynamicBaseUrl!.contains('localhost') ||
-            _dynamicBaseUrl!.trim().isEmpty) {
-          _dynamicBaseUrl = 'https://sanhith30-oral-ulcer-ai-backend.hf.space';
-          await prefs.setString('server_base_url', _dynamicBaseUrl!);
-        }
-      }
     } catch (_) {}
   }
+
 
 
   static Future<void> setBaseUrl(String newUrl) async {
