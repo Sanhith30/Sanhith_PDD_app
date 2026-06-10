@@ -1,5 +1,5 @@
 @echo off
 title Oral Ulcer AI Backend
-cd ML_backend
+cd backend
 python app.py
 pause

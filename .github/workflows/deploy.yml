@@ -29,9 +29,11 @@ jobs:
           channel: 'stable'
 
       - name: Install dependencies
+        working-directory: ./frontend
         run: flutter pub get
 
       - name: Build Web
+        working-directory: ./frontend
         run: |
           flutter build web --base-href "/Sanhith_PDD_app/" --release
 
@@ -39,4 +41,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
+          publish_dir: ./frontend/build/web
