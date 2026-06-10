@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../db/local_db.dart';
 
@@ -47,7 +49,9 @@ class RiskScorer {
   static Future<RiskResult> predictFull({
     required int caseId,
     required Map<String, dynamic> clinicalData,
-    required File imageFile,
+    File? imageFile,
+    Uint8List? imageBytes,
+    String? fileName,
   }) async {
     final uri = Uri.parse('${LocalDb.baseUrl}/predict_full');
     final request = http.MultipartRequest('POST', uri);
@@ -58,7 +62,30 @@ class RiskScorer {
 
     request.fields['case_id'] = caseId.toString();
     request.fields['clinical_json'] = jsonEncode(clinicalData);
-    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+
+    if (kIsWeb) {
+      if (imageBytes != null) {
+        request.files.add(http.MultipartFile.fromBytes(
+          'image',
+          imageBytes,
+          filename: fileName ?? 'image.jpg',
+        ));
+      } else {
+        throw Exception('imageBytes is required on Web');
+      }
+    } else {
+      if (imageFile != null) {
+        request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+      } else if (imageBytes != null) {
+        request.files.add(http.MultipartFile.fromBytes(
+          'image',
+          imageBytes,
+          filename: fileName ?? 'image.jpg',
+        ));
+      } else {
+        throw Exception('imageFile or imageBytes is required');
+      }
+    }
 
     try {
       final streamedResponse = await request.send().timeout(const Duration(seconds: 120));

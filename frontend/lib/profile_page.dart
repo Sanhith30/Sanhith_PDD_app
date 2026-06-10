@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdf/pdf.dart';
@@ -293,7 +294,18 @@ class _ProfilePageState extends State<ProfilePage>
     );
 
     if (pickedFile != null) {
-      final ok = await LocalDb.instance.updateProfilePhoto(pickedFile.path);
+      bool ok;
+      if (kIsWeb) {
+        final bytes = await pickedFile.readAsBytes();
+        ok = await LocalDb.instance.updateProfilePhoto(
+          imageBytes: bytes,
+          fileName: pickedFile.name,
+        );
+      } else {
+        ok = await LocalDb.instance.updateProfilePhoto(
+          localPhotoPath: pickedFile.path,
+        );
+      }
       if (ok && mounted) {
         setState(() {});
         _snack('Profile picture updated!');
@@ -398,7 +410,7 @@ class _ProfilePageState extends State<ProfilePage>
       // Read profile photo bytes if local/remote
       Uint8List? photoBytes;
       if (photoPath != null && photoPath.isNotEmpty) {
-        if (!photoPath.startsWith('http') && !photoPath.startsWith('/static')) {
+        if (!kIsWeb && !photoPath.startsWith('http') && !photoPath.startsWith('/static')) {
           final file = File(photoPath);
           if (file.existsSync()) {
             photoBytes = await file.readAsBytes();

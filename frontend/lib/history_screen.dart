@@ -1046,10 +1046,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
         csv.writeln("${c['id']},${c['patient_id']},\"$name\",\"$doc\",$dateStr,\"$cat\",${c['risk_score']},\"$rec\",${c['confidence']},${c['status']}");
       }
       
-      final dir = await getApplicationDocumentsDirectory();
       final filename = 'SDC_Caseload_Export_${DateTime.now().millisecondsSinceEpoch}.csv';
-      final file = File('${dir.path}/$filename');
-      await file.writeAsString(csv.toString());
+      if (!kIsWeb) {
+        final dir = await getApplicationDocumentsDirectory();
+        final file = File('${dir.path}/$filename');
+        await file.writeAsString(csv.toString());
+      }
       
       // Open native system save/share window
       await Printing.sharePdf(

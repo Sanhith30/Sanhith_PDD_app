@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -34,6 +35,9 @@ class _ImageUploadPageState extends State<ImageUploadPage>
   static const Color _text    = Color(0xFF1E0A10);
 
   File? _selectedImage;
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
+  bool get _hasImage => kIsWeb ? _selectedImageBytes != null : _selectedImage != null;
   bool  _isAnalyzing = false;
   String _step = '';
 
@@ -67,7 +71,15 @@ class _ImageUploadPageState extends State<ImageUploadPage>
       final XFile? picked =
           await _picker.pickImage(source: source, imageQuality: 80);
       if (picked != null) {
-        setState(() => _selectedImage = File(picked.path));
+        if (kIsWeb) {
+          final bytes = await picked.readAsBytes();
+          setState(() {
+            _selectedImageBytes = bytes;
+            _selectedImageName = picked.name;
+          });
+        } else {
+          setState(() => _selectedImage = File(picked.path));
+        }
       }
     } catch (e) {
       _showError('Error capturing image: $e');
@@ -79,14 +91,17 @@ class _ImageUploadPageState extends State<ImageUploadPage>
   // ══════════════════════════════════════════════════════════════════════════
 
   Future<void> _analyzeLocal(int caseId) async {
-    if (_selectedImage == null) return;
+    if (!_hasImage) return;
     setState(() { _isAnalyzing = true; _step = 'Saving image…'; });
 
     try {
+      String? dest;
       // 1. Copy image to app documents folder
-      final dir  = await getApplicationDocumentsDirectory();
-      final dest = p.join(dir.path, 'ulcer_$caseId.jpg');
-      await _selectedImage!.copy(dest);
+      if (!kIsWeb) {
+        final dir  = await getApplicationDocumentsDirectory();
+        dest = p.join(dir.path, 'ulcer_$caseId.jpg');
+        await _selectedImage!.copy(dest);
+      }
 
       // 2. Load clinical data from backend API
       setState(() => _step = 'Loading clinical data…');
@@ -157,14 +172,16 @@ class _ImageUploadPageState extends State<ImageUploadPage>
       final result = await RiskScorer.predictFull(
         caseId: caseId,
         clinicalData: flattenedClinical,
-        imageFile: _selectedImage!,
+        imageFile: kIsWeb ? null : _selectedImage,
+        imageBytes: kIsWeb ? _selectedImageBytes : null,
+        fileName: kIsWeb ? _selectedImageName : null,
       );
 
       // 4. Save result to backend API
       setState(() => _step = 'Saving results…');
       final imagePathToSave = (result.serverImagePath != null && result.serverImagePath!.isNotEmpty)
           ? result.serverImagePath!
-          : dest;
+          : (dest ?? '');
 
       await LocalDb.instance.completeCase(
         caseId:              caseId,
@@ -297,18 +314,18 @@ class _ImageUploadPageState extends State<ImageUploadPage>
       decoration: BoxDecoration(
         color: _surface, borderRadius: BorderRadius.circular(22),
         border: Border.all(
-            color: _selectedImage != null
+            color: _hasImage
                 ? _maroon.withOpacity(0.3) : _border,
-            width: _selectedImage != null ? 1.5 : 1.0),
+            width: _hasImage ? 1.5 : 1.0),
         boxShadow: [BoxShadow(color: _maroon.withOpacity(0.07),
             blurRadius: 20, offset: const Offset(0, 6))],
       ),
-      child: _selectedImage != null
+      child: _hasImage
           ? ClipRRect(
               borderRadius: BorderRadius.circular(21),
               child: Stack(fit: StackFit.expand, children: [
                 kIsWeb 
-                    ? const Center(child: Text("Image preview not available on Web"))
+                    ? Image.memory(_selectedImageBytes!, fit: BoxFit.cover)
                     : Image.file(_selectedImage!, fit: BoxFit.cover),
                 Positioned(
                   top: 12, right: 12,
@@ -353,7 +370,7 @@ class _ImageUploadPageState extends State<ImageUploadPage>
     return Row(children: [
       Expanded(child: _buildPickerBtn(
         Icons.camera_alt_rounded,
-        _selectedImage == null ? 'Camera' : 'Retake',
+        !_hasImage ? 'Camera' : 'Retake',
         _isAnalyzing ? null : () => _pickImage(ImageSource.camera),
       )),
       const SizedBox(width: 14),
@@ -436,7 +453,7 @@ class _ImageUploadPageState extends State<ImageUploadPage>
   }
 
   Widget _buildAnalyzeButton(int caseId) {
-    final bool canAnalyze = _selectedImage != null && !_isAnalyzing;
+    final bool canAnalyze = _hasImage && !_isAnalyzing;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 30),
       decoration: BoxDecoration(
@@ -486,25 +503,25 @@ class _ImageUploadPageState extends State<ImageUploadPage>
                       : Row(mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                           Icon(
-                            _selectedImage == null
+                            !_hasImage
                                 ? Icons.camera_alt_outlined
                                 : Icons.psychology_rounded,
-                            color: _selectedImage == null
+                            color: !_hasImage
                                 ? _muted : Colors.white,
                             size: 20),
                           const SizedBox(width: 10),
                           Text(
-                            _selectedImage == null
+                            !_hasImage
                                 ? 'Select an image first'
                                 : 'Process AI Analysis',
                             style: TextStyle(
-                              color: _selectedImage == null
+                              color: !_hasImage
                                   ? _muted : Colors.white,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          if (_selectedImage != null) ...[
+                          if (_hasImage) ...[
                             const SizedBox(width: 8),
                             const Icon(Icons.arrow_forward_rounded,
                                 color: Colors.white, size: 17),

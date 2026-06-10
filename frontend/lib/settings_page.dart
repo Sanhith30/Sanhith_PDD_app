@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -163,9 +166,13 @@ class _SettingsPageState extends State<SettingsPage>
         csv.writeln("${c['id']},${c['patient_id']},\"$name\",\"$doc\",$dateStr,\"$cat\",${c['risk_score']},\"$rec\",${c['confidence']},${c['status']}");
       }
       
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/SDC_Case_Database_Export.csv');
-      await file.writeAsString(csv.toString());
+      String localPathMsg = '';
+      if (!kIsWeb) {
+        final dir = await getApplicationDocumentsDirectory();
+        final file = File('${dir.path}/SDC_Case_Database_Export.csv');
+        await file.writeAsString(csv.toString());
+        localPathMsg = file.path;
+      }
       
       if (!mounted) return;
       showDialog(
@@ -184,13 +191,15 @@ class _SettingsPageState extends State<SettingsPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Successfully compiled all patient cases and risk scores into a standard CSV file.', style: TextStyle(fontSize: 13)),
-              const SizedBox(height: 12),
-              const Text('Local Path:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              const SizedBox(height: 4),
-              SelectableText(
-                file.path,
-                style: const TextStyle(fontSize: 11, color: _maroon, fontFamily: 'monospace'),
-              ),
+              if (!kIsWeb) ...[
+                const SizedBox(height: 12),
+                const Text('Local Path:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                const SizedBox(height: 4),
+                SelectableText(
+                  localPathMsg,
+                  style: const TextStyle(fontSize: 11, color: _maroon, fontFamily: 'monospace'),
+                ),
+              ],
             ],
           ),
           actions: [
@@ -198,6 +207,17 @@ class _SettingsPageState extends State<SettingsPage>
               onPressed: () => Navigator.pop(context),
               child: const Text('OK', style: TextStyle(color: _maroon, fontWeight: FontWeight.bold)),
             ),
+            if (kIsWeb)
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await Printing.sharePdf(
+                    bytes: Uint8List.fromList(utf8.encode(csv.toString())),
+                    filename: 'SDC_Case_Database_Export.csv',
+                  );
+                },
+                child: const Text('Download CSV', style: TextStyle(color: _maroon, fontWeight: FontWeight.bold)),
+              ),
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);

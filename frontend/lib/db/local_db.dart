@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -168,7 +169,11 @@ class LocalDb {
     }
   }
 
-  Future<bool> updateProfilePhoto(String localPhotoPath) async {
+  Future<bool> updateProfilePhoto({
+    String? localPhotoPath,
+    Uint8List? imageBytes,
+    String? fileName,
+  }) async {
     try {
       final uri = Uri.parse('$baseUrl/clinicians/profile_photo');
       final request = http.MultipartRequest('POST', uri);
@@ -181,7 +186,29 @@ class LocalDb {
         request.headers['Authorization'] = 'Bearer $token';
       }
       
-      request.files.add(await http.MultipartFile.fromPath('photo', localPhotoPath));
+      if (kIsWeb) {
+        if (imageBytes != null) {
+          request.files.add(http.MultipartFile.fromBytes(
+            'photo',
+            imageBytes,
+            filename: fileName ?? 'profile.jpg',
+          ));
+        } else {
+          return false;
+        }
+      } else {
+        if (localPhotoPath != null) {
+          request.files.add(await http.MultipartFile.fromPath('photo', localPhotoPath));
+        } else if (imageBytes != null) {
+          request.files.add(http.MultipartFile.fromBytes(
+            'photo',
+            imageBytes,
+            filename: fileName ?? 'profile.jpg',
+          ));
+        } else {
+          return false;
+        }
+      }
       
       final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
       final response = await http.Response.fromStream(streamedResponse);
@@ -198,7 +225,12 @@ class LocalDb {
     return false;
   }
 
-  Future<String?> uploadPatientPhoto({required String patientId, required String localPath}) async {
+  Future<String?> uploadPatientPhoto({
+    required String patientId,
+    String? localPath,
+    Uint8List? imageBytes,
+    String? fileName,
+  }) async {
     try {
       final uri = Uri.parse('$baseUrl/patients/profile_photo');
       final request = http.MultipartRequest('POST', uri);
@@ -212,7 +244,30 @@ class LocalDb {
       }
       
       request.fields['patient_id'] = patientId;
-      request.files.add(await http.MultipartFile.fromPath('photo', localPath));
+      
+      if (kIsWeb) {
+        if (imageBytes != null) {
+          request.files.add(http.MultipartFile.fromBytes(
+            'photo',
+            imageBytes,
+            filename: fileName ?? 'profile.jpg',
+          ));
+        } else {
+          return null;
+        }
+      } else {
+        if (localPath != null) {
+          request.files.add(await http.MultipartFile.fromPath('photo', localPath));
+        } else if (imageBytes != null) {
+          request.files.add(http.MultipartFile.fromBytes(
+            'photo',
+            imageBytes,
+            filename: fileName ?? 'profile.jpg',
+          ));
+        } else {
+          return null;
+        }
+      }
       
       final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
       final response = await http.Response.fromStream(streamedResponse);

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -258,19 +259,27 @@ class _NewCasePageState extends State<NewCasePage> {
     );
 
     if (pickedFile != null) {
-      final Directory appDocDir = await getApplicationDocumentsDirectory();
-      final String dest = p.join(appDocDir.path, "profile_${DateTime.now().millisecondsSinceEpoch}_${p.basename(pickedFile.path)}");
-      await File(pickedFile.path).copy(dest);
-      
-      setState(() {
-        profilePhotoUrl = dest;
-      });
-      _showSnackBar("Profile photo captured locally", isSuccess: true);
+      String? dest;
+      Uint8List? imageBytes;
+      if (kIsWeb) {
+        imageBytes = await pickedFile.readAsBytes();
+        _showSnackBar("Profile photo captured", isSuccess: true);
+      } else {
+        final Directory appDocDir = await getApplicationDocumentsDirectory();
+        dest = p.join(appDocDir.path, "profile_${DateTime.now().millisecondsSinceEpoch}_${p.basename(pickedFile.path)}");
+        await File(pickedFile.path).copy(dest);
+        setState(() {
+          profilePhotoUrl = dest!;
+        });
+        _showSnackBar("Profile photo captured locally", isSuccess: true);
+      }
 
       final String pid = _idController.text.trim().isEmpty ? "temp" : _idController.text.trim();
       final String? serverPath = await LocalDb.instance.uploadPatientPhoto(
         patientId: pid,
-        localPath: pickedFile.path,
+        localPath: kIsWeb ? null : pickedFile.path,
+        imageBytes: kIsWeb ? imageBytes : null,
+        fileName: kIsWeb ? pickedFile.name : null,
       );
 
       if (serverPath != null && serverPath.isNotEmpty) {
