@@ -10,7 +10,7 @@ This directory contains the automated end-to-end (E2E) testing suite for the **P
 *   `config.py`: Configuration details for URLs, ports, and emulator capabilities. Dynamically checks for `--desktop` flag.
 *   `driver.py`: Encapsulates Selenium and Appium driver connection initialization and teardown.
 *   `pages.py`: **Page Object Model**. Defines selectors and interface interaction functions for pages (Login, Forgot Password, Intake, Settings, Profile).
-*   `test_cases.py`: Implements all 11 E2E Web test cases using the page models.
+*   `test_cases.py`: Implements all 105 E2E Web test cases using the page models.
 *   `report_generator.py`: Generates the beautifully styled Excel execution report matching the PDD Maroon/Gold design system.
 *   `run_tests.py`: Main execution runner script.
 *   `reports/`: Directory containing logs, screenshots, and execution reports.
@@ -72,4 +72,4 @@ To verify Excel formatting and creation without starting a browser session:
 ```bash
 python report_generator.py --dry
 ```
-This generates a mock report with all 11 tests inside `reports/Web_Test_Execution_Report.xlsx`.
+This generates a mock report with all 105 tests inside `reports/Web_Test_Execution_Report.xlsx`.
