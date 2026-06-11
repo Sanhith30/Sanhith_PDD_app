@@ -973,16 +973,20 @@ class _NewCasePageState extends State<NewCasePage> {
               color: _text.withOpacity(0.8), fontSize: 13,
               fontWeight: FontWeight.w500)),
         const Spacer(),
-        GestureDetector(
-          onTap: () =>
-              setState(() { if (lesionSize > 0) lesionSize--; }),
-          child: Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(
-              color: _border,
-              borderRadius: BorderRadius.circular(8)),
-            child: const Icon(Icons.remove_rounded,
-                size: 16, color: _text),
+        Semantics(
+          label: "Decrement Lesion Size",
+          button: true,
+          child: GestureDetector(
+            onTap: () =>
+                setState(() { if (lesionSize > 0) lesionSize--; }),
+            child: Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(
+                color: _border,
+                borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.remove_rounded,
+                  size: 16, color: _text),
+            ),
           ),
         ),
         SizedBox(
@@ -994,15 +998,19 @@ class _NewCasePageState extends State<NewCasePage> {
                   fontWeight: FontWeight.w700)),
           ),
         ),
-        GestureDetector(
-          onTap: () => setState(() => lesionSize++),
-          child: Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(
-              color: _maroon,
-              borderRadius: BorderRadius.circular(8)),
-            child: const Icon(Icons.add_rounded,
-                size: 16, color: Colors.white),
+        Semantics(
+          label: "Increment Lesion Size",
+          button: true,
+          child: GestureDetector(
+            onTap: () => setState(() => lesionSize++),
+            child: Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(
+                color: _maroon,
+                borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.add_rounded,
+                  size: 16, color: Colors.white),
+            ),
           ),
         ),
       ]),
@@ -1248,26 +1256,29 @@ class _NewCasePageState extends State<NewCasePage> {
 
   Widget _buildSwitchTile(
       String label, bool val, Function(bool) onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(children: [
-        Expanded(
-          child: Text(label,
-              style: const TextStyle(
-                color: _text, fontSize: 13,
-                fontWeight: FontWeight.w400,
-              )),
-        ),
-        Switch(
-          value: val,
-          onChanged: onChanged,
-          activeColor: _maroon,
-          activeTrackColor: _maroon.withOpacity(0.25),
-          inactiveThumbColor: _muted.withOpacity(0.5),
-          inactiveTrackColor: _border,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      ]),
+    return Semantics(
+      label: label,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(children: [
+          Expanded(
+            child: Text(label,
+                style: const TextStyle(
+                  color: _text, fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                )),
+          ),
+          Switch(
+            value: val,
+            onChanged: onChanged,
+            activeColor: _maroon,
+            activeTrackColor: _maroon.withOpacity(0.25),
+            inactiveThumbColor: _muted.withOpacity(0.5),
+            inactiveTrackColor: _border,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ]),
+      ),
     );
   }
 

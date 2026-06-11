@@ -815,19 +815,23 @@ class _ProfilePageState extends State<ProfilePage>
                 child: SafeArea(child: Column(
                   mainAxisAlignment: MainAxisAlignment.center, children: [
                   const SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: _pickProfilePhoto,
-                    child: Container(
-                      width: 90, height: 90,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _surface,
-                        border: Border.all(color: _gold, width: 2.5),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20, offset: const Offset(0, 8))],
-                      ),
-                      child: ClipOval(
-                        child: _buildProfileImage(),
+                  Semantics(
+                    label: "Profile Photo",
+                    button: true,
+                    child: GestureDetector(
+                      onTap: _pickProfilePhoto,
+                      child: Container(
+                        width: 90, height: 90,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _surface,
+                          border: Border.all(color: _gold, width: 2.5),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3),
+                              blurRadius: 20, offset: const Offset(0, 8))],
+                        ),
+                        child: ClipOval(
+                          child: _buildProfileImage(),
+                        ),
                       ),
                     ),
                   ),
@@ -839,38 +843,46 @@ class _ProfilePageState extends State<ProfilePage>
                           style: const TextStyle(color: Colors.white, fontSize: 20,
                               fontWeight: FontWeight.w800, letterSpacing: 1.0)),
                       const SizedBox(width: 6),
-                      GestureDetector(
-                        onTap: _showLicenseDialog,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                      Semantics(
+                        label: "License Verification",
+                        button: true,
+                        child: GestureDetector(
+                          onTap: _showLicenseDialog,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.verified, color: Colors.blue, size: 18),
                           ),
-                          child: const Icon(Icons.verified, color: Colors.blue, size: 18),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  GestureDetector(
-                    onTap: _showLicenseDialog,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _gold.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: _gold.withOpacity(0.5)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.shield_outlined, color: _gold, size: 10),
-                          const SizedBox(width: 4),
-                          Text("VERIFIED: $_licenseNo",
-                              style: const TextStyle(color: _gold, fontSize: 9,
-                                  fontWeight: FontWeight.w700, letterSpacing: 1.0)),
-                        ],
+                  Semantics(
+                    label: "License Verification",
+                    button: true,
+                    child: GestureDetector(
+                      onTap: _showLicenseDialog,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _gold.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _gold.withOpacity(0.5)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.shield_outlined, color: _gold, size: 10),
+                            const SizedBox(width: 4),
+                            Text("VERIFIED: $_licenseNo",
+                                style: const TextStyle(color: _gold, fontSize: 9,
+                                    fontWeight: FontWeight.w700, letterSpacing: 1.0)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -993,7 +1005,10 @@ class _ProfilePageState extends State<ProfilePage>
     required bool unlocked,
     required Color color,
   }) {
-    return GestureDetector(
+    return Semantics(
+      label: title,
+      button: true,
+      child: GestureDetector(
       onTap: () => _showAchievementDetail(title, desc, unlocked, color),
       child: Column(
         children: [
@@ -1036,6 +1051,7 @@ class _ProfilePageState extends State<ProfilePage>
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -1906,25 +1922,28 @@ class _ProfilePageState extends State<ProfilePage>
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: GestureDetector(
-                        onPanStart: (details) {
-                          setDialogState(() {
-                            drawPoints.add(details.localPosition);
-                          });
-                        },
-                        onPanUpdate: (details) {
-                          setDialogState(() {
-                            drawPoints.add(details.localPosition);
-                          });
-                        },
-                        onPanEnd: (details) {
-                          setDialogState(() {
-                            drawPoints.add(null);
-                          });
-                        },
-                        child: CustomPaint(
-                          painter: _CanvasPainter(drawPoints),
-                          size: Size.infinite,
+                      child: Semantics(
+                        label: "Signature Canvas",
+                        child: GestureDetector(
+                          onPanStart: (details) {
+                            setDialogState(() {
+                              drawPoints.add(details.localPosition);
+                            });
+                          },
+                          onPanUpdate: (details) {
+                            setDialogState(() {
+                              drawPoints.add(details.localPosition);
+                            });
+                          },
+                          onPanEnd: (details) {
+                            setDialogState(() {
+                              drawPoints.add(null);
+                            });
+                          },
+                          child: CustomPaint(
+                            painter: _CanvasPainter(drawPoints),
+                            size: Size.infinite,
+                          ),
                         ),
                       ),
                     ),

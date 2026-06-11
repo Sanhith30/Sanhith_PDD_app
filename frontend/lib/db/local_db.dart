@@ -17,16 +17,7 @@ class LocalDb {
   static String? _dynamicBaseUrl;
   
   static String get baseUrl {
-    if (_dynamicBaseUrl != null && _dynamicBaseUrl!.isNotEmpty) {
-      return _dynamicBaseUrl!;
-    }
-    if (kIsWeb) {
-      final host = Uri.base.host;
-      if (host == 'localhost' || host == '127.0.0.1') {
-        return 'http://localhost:5000';
-      }
-    }
-    return 'https://sanhith30-oral-ulcer-ai-backend.hf.space'; // fallback
+    return 'https://sanhith30-oral-ulcer-ai-backend.hf.space';
   }
 
   static Future<void> loadBaseUrl() async {

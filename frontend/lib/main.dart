@@ -16,8 +16,11 @@ import 'analytics_page.dart';
 import 'profile_page.dart';
 import 'settings_page.dart';
 import 'change_password_page.dart';
+import 'package:flutter/semantics.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SemanticsBinding.instance.ensureSemantics();
 
   // Load dynamically configured API Base URL from local storage
   await LocalDb.loadBaseUrl();

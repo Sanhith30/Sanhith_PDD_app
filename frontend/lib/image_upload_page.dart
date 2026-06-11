@@ -382,22 +382,26 @@ class _ImageUploadPageState extends State<ImageUploadPage>
   }
 
   Widget _buildPickerBtn(IconData icon, String label, VoidCallback? onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: _surface, borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _border, width: 1.2),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04),
-              blurRadius: 10, offset: const Offset(0, 3))],
+    return Semantics(
+      label: label,
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: _surface, borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _border, width: 1.2),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04),
+                blurRadius: 10, offset: const Offset(0, 3))],
+          ),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(icon, color: _maroon, size: 20),
+            const SizedBox(width: 8),
+            Text(label, style: const TextStyle(color: _maroon, fontSize: 14,
+                fontWeight: FontWeight.w600)),
+          ]),
         ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(icon, color: _maroon, size: 20),
-          const SizedBox(width: 8),
-          Text(label, style: const TextStyle(color: _maroon, fontSize: 14,
-              fontWeight: FontWeight.w600)),
-        ]),
       ),
     );
   }
@@ -433,7 +437,9 @@ class _ImageUploadPageState extends State<ImageUploadPage>
         const SizedBox(height: 14),
         Wrap(
           spacing: 8, runSpacing: 8,
-          children: tips.map((tip) => Container(
+          children: tips.map((tip) => Semantics(
+            label: tip.$1,
+            child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: const Color(0xFFF7F3F0),
@@ -446,7 +452,7 @@ class _ImageUploadPageState extends State<ImageUploadPage>
               Text(tip.$1, style: const TextStyle(color: _muted, fontSize: 11.5,
                   fontWeight: FontWeight.w500)),
             ]),
-          )).toList(),
+          ))).toList(),
         ),
       ]),
     );
@@ -475,7 +481,11 @@ class _ImageUploadPageState extends State<ImageUploadPage>
         ],
         SizedBox(
           width: double.infinity, height: 52,
-          child: Material(
+          child: Semantics(
+            label: !_hasImage ? 'Select an image first' : 'Process AI Analysis',
+            button: true,
+            enabled: canAnalyze,
+            child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: canAnalyze ? () => _analyzeLocal(caseId) : null,
@@ -530,6 +540,7 @@ class _ImageUploadPageState extends State<ImageUploadPage>
                 ),
               ),
             ),
+          ),
           ),
         ),
       ]),

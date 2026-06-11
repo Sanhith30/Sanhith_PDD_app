@@ -408,9 +408,13 @@ class _DashboardPageState extends State<DashboardPage> {
                             children: [
                               Stack(
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.notifications_none_rounded, color: Colors.white70, size: 24),
-                                    onPressed: _showNotificationsBottomSheet,
+                                  Semantics(
+                                    label: "Notifications",
+                                    button: true,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.notifications_none_rounded, color: Colors.white70, size: 24),
+                                      onPressed: _showNotificationsBottomSheet,
+                                    ),
                                   ),
                                   if (_activeNotifications.isNotEmpty)
                                     Positioned(
@@ -439,19 +443,23 @@ class _DashboardPageState extends State<DashboardPage> {
                                     ),
                                 ],
                               ),
-                              GestureDetector(
-                                onTap: () => Navigator.pushNamed(context, '/profile').then((_) {
-                                  if (mounted) setState(() {});
-                                }),
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: _accent.withOpacity(0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: ClipOval(
-                                    child: _buildDoctorAvatar(),
+                              Semantics(
+                                label: "Doctor Profile",
+                                button: true,
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pushNamed(context, '/profile').then((_) {
+                                    if (mounted) setState(() {});
+                                  }),
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: _accent.withOpacity(0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: ClipOval(
+                                      child: _buildDoctorAvatar(),
+                                    ),
                                   ),
                                 ),
                               ),

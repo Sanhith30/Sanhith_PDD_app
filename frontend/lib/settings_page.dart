@@ -748,84 +748,94 @@ class _SettingsPageState extends State<SettingsPage>
 
   Widget _toggle(String title, String sub, IconData icon,
       bool val, ValueChanged<bool> onChanged) {
-    return ListTile(
-      leading: Container(
-        width: 36, height: 36,
-        decoration: BoxDecoration(
-          color: _maroon.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(10),
+    return Semantics(
+      label: title,
+      child: ListTile(
+        leading: Container(
+          width: 36, height: 36,
+          decoration: BoxDecoration(
+            color: _maroon.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: _maroon, size: 18),
         ),
-        child: Icon(icon, color: _maroon, size: 18),
-      ),
-      title: Text(title, style: const TextStyle(color: _text, fontSize: 13.5,
-          fontWeight: FontWeight.w600)),
-      subtitle: Text(sub, style: TextStyle(color: _muted, fontSize: 11.5)),
-      trailing: Switch(
-        value: val,
-        onChanged: onChanged,
-        activeColor: _maroon,
+        title: Text(title, style: const TextStyle(color: _text, fontSize: 13.5,
+            fontWeight: FontWeight.w600)),
+        subtitle: Text(sub, style: TextStyle(color: _muted, fontSize: 11.5)),
+        trailing: Switch(
+          value: val,
+          onChanged: onChanged,
+          activeColor: _maroon,
+        ),
       ),
     );
   }
 
   Widget _dropdown(String title, String sub, IconData icon, String val,
       List<String> options, ValueChanged<String?> onChanged) {
-    return ListTile(
-      leading: Container(
-        width: 36, height: 36,
-        decoration: BoxDecoration(
-          color: _maroon.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(10),
+    return Semantics(
+      label: title,
+      button: true,
+      child: ListTile(
+        leading: Container(
+          width: 36, height: 36,
+          decoration: BoxDecoration(
+            color: _maroon.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: _maroon, size: 18),
         ),
-        child: Icon(icon, color: _maroon, size: 18),
-      ),
-      title: Text(title, style: const TextStyle(color: _text, fontSize: 13.5,
-          fontWeight: FontWeight.w600)),
-      subtitle: Text(sub, style: TextStyle(color: _muted, fontSize: 11.5)),
-      trailing: DropdownButton<String>(
-        value: val,
-        items: options.map((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: _text),
-            ),
-          );
-        }).toList(),
-        onChanged: onChanged,
-        underline: Container(),
-        icon: const Icon(Icons.arrow_drop_down, color: _maroon),
+        title: Text(title, style: const TextStyle(color: _text, fontSize: 13.5,
+            fontWeight: FontWeight.w600)),
+        subtitle: Text(sub, style: TextStyle(color: _muted, fontSize: 11.5)),
+        trailing: DropdownButton<String>(
+          value: val,
+          items: options.map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(
+                value,
+                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: _text),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+          underline: Container(),
+          icon: const Icon(Icons.arrow_drop_down, color: _maroon),
+        ),
       ),
     );
   }
 
   Widget _inputTile(String title, String sub, IconData icon,
       TextEditingController controller, String key) {
-    return ListTile(
-      leading: Container(
-        width: 36, height: 36,
-        decoration: BoxDecoration(
-          color: _maroon.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: _maroon, size: 18),
-      ),
-      title: Text(title, style: const TextStyle(color: _text, fontSize: 13.5,
-          fontWeight: FontWeight.w600)),
-      subtitle: Text(sub, style: TextStyle(color: _muted, fontSize: 11.5)),
-      trailing: SizedBox(
-        width: 100,
-        child: TextField(
-          controller: controller,
-          textAlign: TextAlign.end,
-          style: const TextStyle(color: _maroon, fontSize: 13, fontWeight: FontWeight.bold),
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            hintText: 'SVDC-MAIN',
-            hintStyle: TextStyle(color: _muted, fontSize: 13),
+    return Semantics(
+      label: title,
+      child: ListTile(
+        leading: Container(
+          width: 36, height: 36,
+          decoration: BoxDecoration(
+            color: _maroon.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
           ),
-          onChanged: (val) => _saveString(key, val.trim()),
+          child: Icon(icon, color: _maroon, size: 18),
+        ),
+        title: Text(title, style: const TextStyle(color: _text, fontSize: 13.5,
+            fontWeight: FontWeight.w600)),
+        subtitle: Text(sub, style: TextStyle(color: _muted, fontSize: 11.5)),
+        trailing: SizedBox(
+          width: 100,
+          child: TextField(
+            controller: controller,
+            textAlign: TextAlign.end,
+            style: const TextStyle(color: _maroon, fontSize: 13, fontWeight: FontWeight.bold),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              hintText: 'SVDC-MAIN',
+              hintStyle: TextStyle(color: _muted, fontSize: 13),
+            ),
+            onChanged: (val) => _saveString(key, val.trim()),
+          ),
         ),
       ),
     );
@@ -833,50 +843,58 @@ class _SettingsPageState extends State<SettingsPage>
 
   Widget _tile(String title, IconData icon, VoidCallback? onTap,
       {Widget? trailing}) {
-    return ListTile(
-      onTap: onTap,
-      leading: Container(
-        width: 36, height: 36,
-        decoration: BoxDecoration(
-          color: _maroon.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(10),
+    return Semantics(
+      label: title,
+      button: onTap != null,
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          width: 36, height: 36,
+          decoration: BoxDecoration(
+            color: _maroon.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: _maroon, size: 18),
         ),
-        child: Icon(icon, color: _maroon, size: 18),
+        title: Text(title, style: const TextStyle(color: _text, fontSize: 13.5,
+            fontWeight: FontWeight.w600)),
+        trailing: trailing ??
+            (onTap != null
+                ? const Icon(Icons.chevron_right_rounded,
+                    color: _muted, size: 20)
+                : null),
       ),
-      title: Text(title, style: const TextStyle(color: _text, fontSize: 13.5,
-          fontWeight: FontWeight.w600)),
-      trailing: trailing ??
-          (onTap != null
-              ? const Icon(Icons.chevron_right_rounded,
-                  color: _muted, size: 20)
-              : null),
     );
   }
 
   Widget _signOutTile(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFFFEBEE)),
-      ),
-      child: ListTile(
-        onTap: () {
-          Session.instance.clear();
-          Navigator.pushReplacementNamed(context, '/login');
-        },
-        leading: Container(
-          width: 36, height: 36,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFEBEE),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Icon(Icons.logout_rounded,
-              color: Color(0xFFC62828), size: 18),
+    return Semantics(
+      label: "Sign Out",
+      button: true,
+      child: Container(
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFFFEBEE)),
         ),
-        title: const Text('Sign Out',
-            style: TextStyle(color: Color(0xFFC62828), fontSize: 13.5,
-                fontWeight: FontWeight.w700)),
+        child: ListTile(
+          onTap: () {
+            Session.instance.clear();
+            Navigator.pushReplacementNamed(context, '/login');
+          },
+          leading: Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFEBEE),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.logout_rounded,
+                color: Color(0xFFC62828), size: 18),
+          ),
+          title: const Text('Sign Out',
+              style: TextStyle(color: Color(0xFFC62828), fontSize: 13.5,
+                  fontWeight: FontWeight.w700)),
+        ),
       ),
     );
   }
