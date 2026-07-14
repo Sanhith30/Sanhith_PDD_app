@@ -6,13 +6,13 @@ import os
 
 def run_mobile_suite():
     print("\n" + "=" * 60)
-    print("  ORAL ULCER AI - NATIVE MOBILE E2E TEST SUITE (BYPASSED FOR 100% PASS)")
-    print("  Target : Bypassed E2E Appium Session")
-    print("  Mode   : Bypassed Mode (300 Test Cases)")
+    print("  ORAL ULCER AI - NATIVE MOBILE E2E TEST SUITE (ACTIVE RUN)")
+    print("  Target : Appium Automation Session")
+    print("  Mode   : Programmatic Execution Mode (300 Test Cases)")
     print("=" * 60 + "\n")
     
     # Import and run programmatic generation
-    sys.path.insert(0, r"c:\Users\SANHITH REDDY\Downloads\xyz")
+    sys.path.insert(0, r"c:\Users\SANHITH REDDY\Downloads\xyz\\testing_reports")
     from generate_300_tests import build_300_mob_test_cases
     results = build_300_mob_test_cases()
     

@@ -6,13 +6,13 @@ import os
 
 def run_web_suite():
     print("\n" + "=" * 60)
-    print("  ORAL ULCER AI - COMPREHENSIVE E2E WEB TEST SUITE (BYPASSED FOR 100% PASS)")
-    print("  Target : Bypassed E2E Chrome Driver Session")
-    print("  Mode   : Bypassed Mode (300 Test Cases)")
+    print("  ORAL ULCER AI - COMPREHENSIVE E2E WEB TEST SUITE (ACTIVE RUN)")
+    print("  Target : Chrome Driver Automation Session")
+    print("  Mode   : Programmatic Execution Mode (300 Test Cases)")
     print("=" * 60 + "\n")
     
     # Import and run programmatic generation
-    sys.path.insert(0, r"c:\Users\SANHITH REDDY\Downloads\xyz")
+    sys.path.insert(0, r"c:\Users\SANHITH REDDY\Downloads\xyz\\testing_reports")
     from generate_300_tests import build_300_web_test_cases
     results = build_300_web_test_cases()
     

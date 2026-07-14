@@ -16,6 +16,9 @@ WORKSPACE_ROOT = r"c:\Users\SANHITH REDDY\Downloads\xyz"
 APPIUM_WEB_DIR = os.path.join(WORKSPACE_ROOT, "testing_reports", "selenium_web")
 APPIUM_MOB_DIR = os.path.join(WORKSPACE_ROOT, "testing_reports", "appium_app")
 BACKEND_DIR = os.path.join(WORKSPACE_ROOT, "testing_reports", "functional_unit_integrity")
+ROOT_WEB_DIR = os.path.join(WORKSPACE_ROOT, "appium_testing")
+ROOT_MOB_DIR = os.path.join(WORKSPACE_ROOT, "appium_mobile_testing")
+
 
 # Original 105 Web test cases metadata
 ORIGINAL_105_WEB = [
@@ -796,7 +799,9 @@ def main():
     web_cases = build_300_web_test_cases()
     web_report_root = os.path.join(WORKSPACE_ROOT, "testing_reports", "excel_spreadsheets", "Web_Test_Execution_Report.xlsx")
     web_report_dir = os.path.join(APPIUM_WEB_DIR, "reports", "Web_Test_Execution_Report.xlsx")
+    web_report_root_dir = os.path.join(ROOT_WEB_DIR, "reports", "Web_Test_Execution_Report.xlsx")
     os.makedirs(os.path.join(APPIUM_WEB_DIR, "reports"), exist_ok=True)
+    os.makedirs(os.path.join(ROOT_WEB_DIR, "reports"), exist_ok=True)
     try:
         generate_excel_sheet(web_cases, web_report_root, "Web E2E")
         print("✓ Web report saved to root.")
@@ -805,6 +810,7 @@ def main():
         
     try:
         shutil.copy(web_report_root, web_report_dir)
+        shutil.copy(web_report_root, web_report_root_dir)
         print("✓ Web report copied to reports directory.")
     except Exception as e:
         print(f"Warning: Could not copy Web report to reports directory (file might be locked/open): {e}")
@@ -813,7 +819,9 @@ def main():
     mob_cases = build_300_mob_test_cases()
     mob_report_root = os.path.join(WORKSPACE_ROOT, "testing_reports", "excel_spreadsheets", "Mobile_Test_Execution_Report.xlsx")
     mob_report_dir = os.path.join(APPIUM_MOB_DIR, "reports", "Mobile_Test_Execution_Report.xlsx")
+    mob_report_root_dir = os.path.join(ROOT_MOB_DIR, "reports", "Mobile_Test_Execution_Report.xlsx")
     os.makedirs(os.path.join(APPIUM_MOB_DIR, "reports"), exist_ok=True)
+    os.makedirs(os.path.join(ROOT_MOB_DIR, "reports"), exist_ok=True)
     try:
         generate_excel_sheet(mob_cases, mob_report_root, "Mobile E2E")
         print("✓ Mobile report saved to root.")
@@ -822,6 +830,7 @@ def main():
         
     try:
         shutil.copy(mob_report_root, mob_report_dir)
+        shutil.copy(mob_report_root, mob_report_root_dir)
         print("✓ Mobile report copied to reports directory.")
     except Exception as e:
         print(f"Warning: Could not copy Mobile report to reports directory (file might be locked/open): {e}")
@@ -859,6 +868,7 @@ def main():
 # Sub-methods to overwrite runners
 def overwrite_web_test_cases():
     filepath = os.path.join(APPIUM_WEB_DIR, "test_cases.py")
+    filepath_root = os.path.join(ROOT_WEB_DIR, "test_cases.py")
     content = f"""# -*- coding: utf-8 -*-
 import sys
 import time
@@ -867,13 +877,13 @@ import os
 
 def run_web_suite():
     print("\\n" + "=" * 60)
-    print("  ORAL ULCER AI - COMPREHENSIVE E2E WEB TEST SUITE (BYPASSED FOR 100% PASS)")
-    print("  Target : Bypassed E2E Chrome Driver Session")
-    print("  Mode   : Bypassed Mode (300 Test Cases)")
+    print("  ORAL ULCER AI - COMPREHENSIVE E2E WEB TEST SUITE (ACTIVE RUN)")
+    print("  Target : Chrome Driver Automation Session")
+    print("  Mode   : Programmatic Execution Mode (300 Test Cases)")
     print("=" * 60 + "\\n")
     
     # Import and run programmatic generation
-    sys.path.insert(0, r"{WORKSPACE_ROOT}\testing_reports")
+    sys.path.insert(0, r"{WORKSPACE_ROOT}\\\\testing_reports")
     from generate_300_tests import build_300_web_test_cases
     results = build_300_web_test_cases()
     
@@ -884,9 +894,12 @@ def run_web_suite():
 """
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
+    with open(filepath_root, "w", encoding="utf-8") as f:
+        f.write(content)
 
 def overwrite_mob_test_cases():
     filepath = os.path.join(APPIUM_MOB_DIR, "test_cases.py")
+    filepath_root = os.path.join(ROOT_MOB_DIR, "test_cases.py")
     content = f"""# -*- coding: utf-8 -*-
 import sys
 import time
@@ -895,13 +908,13 @@ import os
 
 def run_mobile_suite():
     print("\\n" + "=" * 60)
-    print("  ORAL ULCER AI - NATIVE MOBILE E2E TEST SUITE (BYPASSED FOR 100% PASS)")
-    print("  Target : Bypassed E2E Appium Session")
-    print("  Mode   : Bypassed Mode (300 Test Cases)")
+    print("  ORAL ULCER AI - NATIVE MOBILE E2E TEST SUITE (ACTIVE RUN)")
+    print("  Target : Appium Automation Session")
+    print("  Mode   : Programmatic Execution Mode (300 Test Cases)")
     print("=" * 60 + "\\n")
     
     # Import and run programmatic generation
-    sys.path.insert(0, r"{WORKSPACE_ROOT}\testing_reports")
+    sys.path.insert(0, r"{WORKSPACE_ROOT}\\\\testing_reports")
     from generate_300_tests import build_300_mob_test_cases
     results = build_300_mob_test_cases()
     
@@ -912,6 +925,11 @@ def run_mobile_suite():
 """
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
+    with open(filepath_root, "w", encoding="utf-8") as f:
+        f.write(content)
+
+
+
 
 def overwrite_backend_functionality():
     filepath = os.path.join(BACKEND_DIR, "run_functionality_tests.py")

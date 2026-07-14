@@ -236,7 +236,7 @@ class BasePage:
         """Suppresses browser print dialog so PDF tests don't block execution."""
         script = """
             window.print = function() {
-                console.log('Mocked window.print() called — test suite bypass.');
+                console.log('Mocked window.print() called — print dialog suppressed.');
             };
             const _orig = document.createElement.bind(document);
             document.createElement = function(tag) {

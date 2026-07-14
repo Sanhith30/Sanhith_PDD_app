@@ -8,7 +8,7 @@ def run_tests():
     print("   Saveetha Oral Sentry Functionality Tests (300 TCs)")
     print("====================================================")
     
-    sys.path.insert(0, r"c:\Users\SANHITH REDDY\Downloads\xyz")
+    sys.path.insert(0, r"c:\Users\SANHITH REDDY\Downloads\xyz	esting_reports")
     from generate_300_tests import build_300_backend_test_cases, generate_backend_sheet
     results = build_300_backend_test_cases()
     
@@ -16,8 +16,8 @@ def run_tests():
         print(f"Running {r['Test Case ID']}: {r['Description']}... [PASS] in {r['Latency (s)']}s")
         
     # Export reports
-    excel_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Functionality_Testing_Report.xlsx"))
-    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Functionality_Testing_Report.csv"))
+    excel_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testing_reports", "excel_spreadsheets", "Functionality_Testing_Report.xlsx"))
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testing_reports", "excel_spreadsheets", "Functionality_Testing_Report.csv"))
     
     generate_backend_sheet(results, excel_path)
     

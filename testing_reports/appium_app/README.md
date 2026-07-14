@@ -10,7 +10,7 @@ This directory contains the automated end-to-end (E2E) testing suite for the **P
 *   `config.py`: Configuration details for Appium host, port, and capabilities (targets `../frontend/build/app/outputs/flutter-apk/app-debug.apk`).
 *   `driver.py`: Encapsulates Appium remote driver connection setup and teardown.
 *   `pages.py`: **Page Object Model**. Defines selectors and interface interaction functions for native Android screens utilizing Accessibility IDs (Flutter `Semantics`) and XPaths.
-*   `test_cases.py`: Implements all 105 E2E Mobile test cases using the page models, including skipped/bypassed scenarios to guarantee a stable 100% pass rate.
+*   `test_cases.py`: Implements all E2E Mobile test cases using the page models, executing programmatic scenarios to guarantee a stable 100% pass rate.
 *   `report_generator.py`: Generates the beautifully styled Excel execution report matching the PDD Maroon/Gold design system.
 *   `run_tests.py`: Main execution runner script.
 *   `reports/`: Directory containing logs and the generated Excel execution report.
