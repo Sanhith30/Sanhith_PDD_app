@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'db/local_db.dart';
 import 'splash_screen.dart';
 import 'onboarding_screen.dart';
@@ -16,6 +17,19 @@ import 'analytics_page.dart';
 import 'profile_page.dart';
 import 'settings_page.dart';
 import 'change_password_page.dart';
+
+// Web specific imports
+import 'web/web_onboarding_screen.dart';
+import 'web/web_login_page.dart';
+import 'web/web_sign_up_page.dart';
+import 'web/web_forgot_password_page.dart';
+import 'web/web_navigation_container.dart';
+import 'web/web_new_case_page.dart';
+import 'web/web_image_upload_page.dart';
+import 'web/web_ai_result_screen.dart';
+import 'web/web_case_detail_page.dart';
+import 'web/web_change_password_page.dart';
+
 import 'package:flutter/semantics.dart';
 
 void main() async {
@@ -58,20 +72,20 @@ class SaveethaOralSentry extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/':              (_) => SplashScreen(showOnboarding: showOnboarding),
-        '/onboarding':    (_) => const OnboardingScreen(),
-        '/login':         (_) => const LoginPage(),
-        '/sign_up':       (_) => const SignUpPage(),
-        '/forgot_password': (_) => const ForgotPasswordPage(),
-        '/dashboard':     (_) => const MainScaffold(),
-        '/new_case':      (_) => const NewCasePage(),
-        '/image_upload':  (_) => const ImageUploadPage(),
-        '/ai_result':     (_) => const AiResultScreen(),
+        '/onboarding':    (_) => kIsWeb ? const WebOnboardingScreen() : const OnboardingScreen(),
+        '/login':         (_) => kIsWeb ? const WebLoginPage() : const LoginPage(),
+        '/sign_up':       (_) => kIsWeb ? const WebSignUpPage() : const SignUpPage(),
+        '/forgot_password': (_) => kIsWeb ? const WebForgotPasswordPage() : const ForgotPasswordPage(),
+        '/dashboard':     (_) => kIsWeb ? const WebMainScaffold() : const MainScaffold(),
+        '/new_case':      (_) => kIsWeb ? const WebNewCasePage() : const NewCasePage(),
+        '/image_upload':  (_) => kIsWeb ? const WebImageUploadPage() : const ImageUploadPage(),
+        '/ai_result':     (_) => kIsWeb ? const WebAiResultScreen() : const AiResultScreen(),
         '/history':       (_) => const HistoryScreen(),
-        '/case_detail':   (_) => const CaseDetailPage(),
+        '/case_detail':   (_) => kIsWeb ? const WebCaseDetailPage() : const CaseDetailPage(),
         '/analytics':     (_) => const AnalyticsPage(),
         '/profile':       (_) => const ProfilePage(),
         '/settings':      (_) => const SettingsPage(),
-        '/change_password': (_) => const ChangePasswordPage(),
+        '/change_password': (_) => kIsWeb ? const WebChangePasswordPage() : const ChangePasswordPage(),
       },
     );
   }

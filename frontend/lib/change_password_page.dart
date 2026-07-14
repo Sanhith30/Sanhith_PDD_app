@@ -99,6 +99,18 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       return;
     }
 
+    if (newP.contains(' ')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password cannot contain spaces')));
+      return;
+    }
+
+    if (!newP.contains(RegExp(r'[A-Za-z]')) || !newP.contains(RegExp(r'[0-9]')) || !newP.contains(RegExp(r'[^A-Za-z0-9]'))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password must contain letters, numbers, and a special character')));
+      return;
+    }
+
     final email = Session.instance.email ?? '';
     final reused = await _isPasswordReused(email, newP);
     if (reused) {

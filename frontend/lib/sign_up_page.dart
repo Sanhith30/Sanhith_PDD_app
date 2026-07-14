@@ -86,12 +86,16 @@ class _SignUpPageState extends State<SignUpPage>
 
     if (e.isEmpty) {
       ee = 'Email is required';
-    } else if (!RegExp(r'^[\w\.\-]+@[\w\-]+\.\w{2,}$').hasMatch(e)) {
-      ee = 'Enter a valid email address';
+    } else if (!RegExp(r'^[\w\.\-]+@gmail\.com$').hasMatch(e.toLowerCase())) {
+      ee = 'Only @gmail.com email addresses are allowed';
     }
 
     if (p.isEmpty)         pe = 'Password is required';
     else if (p.length < 6) pe = 'Password must be at least 6 characters';
+    else if (p.contains(' ')) pe = 'Password cannot contain spaces';
+    else if (!p.contains(RegExp(r'[A-Za-z]')) || !p.contains(RegExp(r'[0-9]')) || !p.contains(RegExp(r'[^A-Za-z0-9]'))) {
+      pe = 'Password must contain letters, numbers, and a special character';
+    }
 
     if (c.isEmpty)  ce = 'Please confirm your password';
     else if (p != c) ce = 'Passwords do not match';

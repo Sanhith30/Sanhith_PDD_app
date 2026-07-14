@@ -88,9 +88,17 @@ class LocalDb {
         final user = data['user'] as Map<String, dynamic>;
         user['token'] = data['access_token'];
         return user;
+      } else {
+        final data = jsonDecode(res.body);
+        final detail = data['detail'] as String? ?? 'Incorrect email or password';
+        throw Exception(detail);
       }
-    } catch (_) {}
-    return null;
+    } catch (e) {
+      if (e.toString().contains('Exception:')) {
+        rethrow;
+      }
+      throw Exception('Network error. Please try again.');
+    }
   }
 
   Future<Map<String, dynamic>?> signUp(String name, String email, String password) async {
@@ -113,16 +121,22 @@ class LocalDb {
     return null;
   }
 
-  Future<bool> requestPasswordReset(String email) async {
+  Future<Map<String, dynamic>> requestPasswordReset(String email) async {
     try {
       final res = await http.post(
         Uri.parse('$baseUrl/auth/reset_password'),
         headers: {'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true'},
         body: jsonEncode({'email': email}),
       );
-      return res.statusCode == 200;
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return {"success": true, "message": data["message"] ?? ""};
+      } else {
+        final data = jsonDecode(res.body);
+        return {"success": false, "message": data["detail"] ?? "Failed to send code. Account may not exist."};
+      }
     } catch (_) {
-      return false;
+      return {"success": false, "message": "Network error. Please try again."};
     }
   }
 
@@ -450,5 +464,12 @@ class LocalDb {
       return res.statusCode == 200;
     } catch (_) {}
     return false;
+  }
+
+  static String resolveUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http')) return path;
+    final base = baseUrl;
+    return path.startsWith('/') ? '$base$path' : '$base/$path';
   }
 }

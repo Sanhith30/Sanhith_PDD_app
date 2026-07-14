@@ -1,8 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
-import urllib.parse
 import os
 
 # Supabase Cloud Database is the default connection
@@ -20,3 +18,5 @@ def get_db():
         yield db
     finally:
         db.close()
+
+

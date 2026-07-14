@@ -78,24 +78,39 @@ class _LoginPageState extends State<LoginPage>
   // ══════════════════════════════════════════════════════════════════════════
 
   Future<void> _submitAuth() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmController.text;
+
     if (!_isLogin) {
-      if (_nameController.text.trim().isEmpty) {
+      if (name.isEmpty) {
         _showError('Please enter your full name.'); return;
       }
-      if (_nameController.text.trim().length < 2) {
+      if (name.length < 2) {
         _showError('Name must be at least 2 characters.'); return;
       }
     }
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty) {
-      _showError('Please enter both your email and password.'); return;
+    if (email.isEmpty) {
+      _showError('Please enter your email.'); return;
+    }
+    if (!RegExp(r'^[\w\.\-]+@gmail\.com$').hasMatch(email.toLowerCase())) {
+      _showError('Only @gmail.com email addresses are allowed.'); return;
+    }
+    if (password.isEmpty) {
+      _showError('Please enter your password.'); return;
     }
     if (!_isLogin) {
-      if (_passwordController.text.trim().length < 6) {
+      if (password.length < 6) {
         _showError('Password must be at least 6 characters.'); return;
       }
-      if (_passwordController.text.trim() !=
-          _confirmController.text.trim()) {
+      if (password.contains(' ')) {
+        _showError('Password cannot contain spaces.'); return;
+      }
+      if (!password.contains(RegExp(r'[A-Za-z]')) || !password.contains(RegExp(r'[0-9]')) || !password.contains(RegExp(r'[^A-Za-z0-9]'))) {
+        _showError('Password must contain letters, numbers, and a special character.'); return;
+      }
+      if (password != confirm) {
         _showError('Passwords do not match. Please re-enter.'); return;
       }
     }
@@ -109,11 +124,7 @@ class _LoginPageState extends State<LoginPage>
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
-        if (clinician == null) {
-          _showError('Incorrect email or password. Please check and try again.');
-          return;
-        }
-        Session.instance.set(clinician);
+        Session.instance.set(clinician!);
       } else {
         // ── Sign Up ────────────────────────────────────────────────────────
         final clinician = await LocalDb.instance.signUp(
@@ -131,7 +142,8 @@ class _LoginPageState extends State<LoginPage>
       if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
 
     } catch (e) {
-      _showError('An error occurred. Please try again.');
+      String msg = e.toString().replaceAll('Exception: ', '');
+      _showError(msg);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

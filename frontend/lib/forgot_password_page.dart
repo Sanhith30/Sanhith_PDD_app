@@ -151,21 +151,21 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
 
   Future<void> _requestOtp() async {
     final email = _emailCtrl.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
-      _error('Please enter a valid registered email.'); return;
+    if (email.isEmpty || !RegExp(r'^[\w\.\-]+@gmail\.com$').hasMatch(email.toLowerCase())) {
+      _error('Only @gmail.com email addresses are allowed.'); return;
     }
     
     setState(() => _loading = true);
-    final success = await LocalDb.instance.requestPasswordReset(email);
+    final result = await LocalDb.instance.requestPasswordReset(email);
     
     if (mounted) {
       setState(() => _loading = false);
-      if (success) {
+      if (result['success'] == true) {
         setState(() => _otpSent = true);
         _startCountdown();
         _success('Verification code sent to your Gmail!');
       } else {
-        _error('Failed to send code. Account may not exist or server error.');
+        _error(result['message'] as String? ?? 'Failed to send code.');
       }
     }
   }
@@ -178,6 +178,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
     if (otp.length != 6) { _error('Enter the 6-digit code sent to Gmail.'); return; }
     if (_secondsRemaining <= 0) { _error('Code has expired. Please request a new one.'); return; }
     if (pass.length < 6) { _error('New password must be at least 6 characters.'); return; }
+    if (pass.contains(' ')) { _error('Password cannot contain spaces.'); return; }
+    if (!pass.contains(RegExp(r'[A-Za-z]')) || !pass.contains(RegExp(r'[0-9]')) || !pass.contains(RegExp(r'[^A-Za-z0-9]'))) {
+      _error('Password must contain letters, numbers, and a special character.'); return;
+    }
 
     final reused = await _isPasswordReused(email, pass);
     if (reused) {

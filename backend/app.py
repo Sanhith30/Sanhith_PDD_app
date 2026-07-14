@@ -691,12 +691,29 @@ class ClinicianLogin(BaseModel):
     email: str
     password: str
 
+def validate_password_strength(password: str):
+    if " " in password:
+        raise HTTPException(status_code=400, detail="Password cannot contain spaces. No spaces are allowed in the password.")
+    if not any(c.isalpha() for c in password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one letter.")
+    if not any(c.isdigit() for c in password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one number.")
+    if not any(not c.isalnum() for c in password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one special character.")
+
 @app.post("/auth/signup")
 def signup(clinician: ClinicianCreate, db: Session = Depends(get_db)):
     import time
     start_time = time.time()
     print(f"DEBUG: Signup request received for {clinician.email}")
     
+    # Validate email format
+    import re
+    if not re.match(r'^[\w\.\-]+@gmail\.com$', clinician.email.lower()):
+        raise HTTPException(status_code=400, detail="Invalid email format. Only @gmail.com email addresses are allowed.")
+        
+    validate_password_strength(clinician.password)
+        
     db_user = db.query(models.Clinician).filter(models.Clinician.email == clinician.email.lower()).first()
     if db_user:
         print(f"DEBUG: Signup failed - Email {clinician.email} already exists")
@@ -728,7 +745,7 @@ def login(clinician: ClinicianLogin, db: Session = Depends(get_db)):
     
     if not db_user:
         print(f"DEBUG: Login failed - User {clinician.email} not found in database")
-        raise HTTPException(status_code=401, detail="Incorrect email or password")
+        raise HTTPException(status_code=401, detail="email wrong")
     
     print(f"DEBUG: User found. Verifying password...")
     is_valid = verify_password(clinician.password, db_user.pass_hash)
@@ -737,7 +754,7 @@ def login(clinician: ClinicianLogin, db: Session = Depends(get_db)):
         print(f"DEBUG: Login failed - Password mismatch for {clinician.email}")
         # Log lengths for debugging
         print(f"DEBUG: Input pass length: {len(clinician.password)}, DB hash length: {len(db_user.pass_hash)}")
-        raise HTTPException(status_code=401, detail="Incorrect email or password")
+        raise HTTPException(status_code=401, detail="password wrong")
     
     logger.info(f"AUTH: Login successful for {clinician.email}")
     access_token = create_access_token(data={"sub": db_user.email})
@@ -765,10 +782,9 @@ def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
     
     success = send_otp_email(req.email.lower(), otp_code)
     if not success:
-        # Fallback for cloud/restricted environments where outgoing SMTP ports (25/465/587) are blocked
-        logger.warning(f"SMTP failed to send to {req.email}. Setting fallback OTP '123456' for demonstration/testing.")
-        otp_store[req.email.lower()] = {"code": "123456", "expiry": expiry}
-        return {"success": True, "message": "SMTP blocked on server. Use default demo code '123456' to reset."}
+        if req.email.lower() in otp_store:
+            del otp_store[req.email.lower()]
+        raise HTTPException(status_code=500, detail="Failed to send verification code. Please verify server SMTP configuration.")
         
     return {"success": True, "message": "Verification code sent to Gmail"}
 
@@ -782,6 +798,8 @@ def confirm_password_reset(req: ConfirmResetRequest, db: Session = Depends(get_d
     """
     Step 2: Verify OTP and update password.
     """
+    validate_password_strength(req.new_password)
+        
     email = req.email.lower()
             
     if email not in otp_store:
@@ -814,6 +832,8 @@ class ChangePasswordRequest(BaseModel):
 
 @app.post("/auth/change_password")
 def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
+    validate_password_strength(req.new_password)
+        
     db_user = db.query(models.Clinician).filter(models.Clinician.email == req.email.lower()).first()
     if not db_user or not verify_password(req.old_password, db_user.pass_hash):
         raise HTTPException(status_code=401, detail="Incorrect current password")

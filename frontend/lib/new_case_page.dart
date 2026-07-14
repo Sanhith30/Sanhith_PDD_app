@@ -1184,7 +1184,7 @@ class _NewCasePageState extends State<NewCasePage> {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
-          value: value,
+          value: items.contains(value) ? value : null,
           hint: hint != null
               ? Text(hint,
                   style: TextStyle(

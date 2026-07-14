@@ -789,7 +789,7 @@ class _SettingsPageState extends State<SettingsPage>
             fontWeight: FontWeight.w600)),
         subtitle: Text(sub, style: TextStyle(color: _muted, fontSize: 11.5)),
         trailing: DropdownButton<String>(
-          value: val,
+          value: options.contains(val) ? val : (options.isNotEmpty ? options.first : null),
           items: options.map((String value) {
             return DropdownMenuItem<String>(
               value: value,
